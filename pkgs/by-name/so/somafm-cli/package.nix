@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  fetchpatch,
   makeWrapper,
   curl,
   jq,
@@ -18,6 +19,24 @@ stdenv.mkDerivation rec {
     rev = "v${version}";
     sha256 = "1h5p9qsczgfr450sklh2vkllcpzb7nicbs8ciyvkavh3d7hds0yy";
   };
+
+  patches = [
+    # allow using mpv controls
+    (fetchpatch {
+      url = "https://github.com/rockymadden/somafm-cli/commit/4ef4cbf3b86dfaa0344941a5999f59980420b4da.patch";
+      hash = "sha256-xgoxKVq0734LppSM7DM2QQEzGFyo4cpc6IclCGD+GBg=";
+    })
+    # format list table
+    (fetchpatch {
+      url = "https://github.com/rockymadden/somafm-cli/pull/19.patch";
+      hash = "sha256-Bj/EC+qLuGAo+S1AEkZC8vC+VzrXRtnnoeRloJy0aRY=";
+    })
+  ];
+
+  postPatch = ''
+    substituteInPlace src/somafm \
+      --replace '*) mpv --no-config' '*) mpv'
+  '';
 
   nativeBuildInputs = [ makeWrapper ];
 
