@@ -36,10 +36,14 @@ stdenv.mkDerivation (finalAttrs: {
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    pkg-config
-    autoreconfHook
-  ];
+  nativeBuildInputs =
+    [
+      pkg-config
+      autoreconfHook
+    ]
+    ++ lib.optionals cryptoSupport [
+      libgcrypt
+    ];
 
   buildInputs =
     [
@@ -53,14 +57,14 @@ stdenv.mkDerivation (finalAttrs: {
       libxml2.py
       python
       ncurses
-    ]
-    ++ lib.optionals cryptoSupport [
-      libgcrypt
     ];
 
   propagatedBuildInputs = [
     findXMLCatalogs
   ];
+
+  LIBGCRYPT_CFLAGS = if cryptoSupport then "-I${libgcrypt.dev}/include" else null;
+  LIBGCRYPT_LIBS = if cryptoSupport then "-L${libgcrypt}/lib -lgcrypt" else null;
 
   configureFlags =
     [
