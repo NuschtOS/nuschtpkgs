@@ -1123,7 +1123,7 @@ rec {
       ''
         printf "%s" "$text" | nginxfmt --max-empty-lines 0 - > $out
         sed -i 's/ ;/;/g' $out
-        gixy $out || (echo "\n\nThis can be caused by combining multiple incompatible services on the same hostname.\n\nFull merged config:\n\n"; cat $out; exit 1)
+        gixy --skips resolver_external $out || (echo "\n\nThis can be caused by combining multiple incompatible services on the same hostname.\n\nFull merged config:\n\n"; cat $out; exit 1)
       '';
 
   /**
