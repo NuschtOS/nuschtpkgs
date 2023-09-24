@@ -247,6 +247,8 @@ in
       }
     ];
 
+    environment.etc."mobilizon/config.exs".source = configFile;
+
     services.mobilizon.settings = {
       ":mobilizon" = {
         "Mobilizon.Web.Endpoint" = {
