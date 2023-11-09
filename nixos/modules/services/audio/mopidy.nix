@@ -70,6 +70,7 @@ in
   ###### implementation
 
   config = lib.mkIf cfg.enable {
+    environment.etc."mpd.conf".source = mopidyConf;
 
     systemd.tmpfiles.settings."10-mopidy".${cfg.dataDir}.d = {
       user = "mopidy";
@@ -86,7 +87,7 @@ in
       description = "mopidy music player daemon";
       serviceConfig = {
         ExecStart = "${mopidyEnv}/bin/mopidy --config ${
-          lib.concatStringsSep ":" ([ mopidyConf ] ++ cfg.extraConfigFiles)
+          lib.concatStringsSep ":" ([ "/etc/mpd.conf" ] ++ cfg.extraConfigFiles)
         }";
         Restart = "on-failure";
         User = "mopidy";
@@ -97,7 +98,7 @@ in
       description = "mopidy local files scanner";
       serviceConfig = {
         ExecStart = "${mopidyEnv}/bin/mopidy --config ${
-          lib.concatStringsSep ":" ([ mopidyConf ] ++ cfg.extraConfigFiles)
+          lib.concatStringsSep ":" ([ "/etc/mpd.conf" ] ++ cfg.extraConfigFiles)
         } local scan";
         User = "mopidy";
         Type = "oneshot";
