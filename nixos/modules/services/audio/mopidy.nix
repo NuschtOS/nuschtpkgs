@@ -75,6 +75,7 @@ in
   ###### implementation
 
   config = mkIf cfg.enable {
+    environment.etc."mpd.conf".source = mopidyConf;
 
     systemd.tmpfiles.settings."10-mopidy".${cfg.dataDir}.d = {
       user = "mopidy";
@@ -90,9 +91,7 @@ in
       wants = [ "network-online.target" ];
       description = "mopidy music player daemon";
       serviceConfig = {
-        ExecStart = "${mopidyEnv}/bin/mopidy --config ${
-          concatStringsSep ":" ([ mopidyConf ] ++ cfg.extraConfigFiles)
-        }";
+        ExecStart = "${mopidyEnv}/bin/mopidy --config ${concatStringsSep ":" (["/etc/mpd.conf"] ++ cfg.extraConfigFiles)}";
         User = "mopidy";
       };
     };
@@ -100,9 +99,7 @@ in
     systemd.services.mopidy-scan = {
       description = "mopidy local files scanner";
       serviceConfig = {
-        ExecStart = "${mopidyEnv}/bin/mopidy --config ${
-          concatStringsSep ":" ([ mopidyConf ] ++ cfg.extraConfigFiles)
-        } local scan";
+        ExecStart = "${mopidyEnv}/bin/mopidy --config ${concatStringsSep ":" (["/etc/mpd.conf"] ++ cfg.extraConfigFiles)} local scan";
         User = "mopidy";
         Type = "oneshot";
       };
