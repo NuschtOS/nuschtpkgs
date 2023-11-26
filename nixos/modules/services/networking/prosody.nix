@@ -1015,7 +1015,16 @@ in
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
-      restartTriggers = [ config.environment.etc."prosody/prosody.cfg.lua".source ];
+      restartTriggers = [
+        # placed here instead of before assigning environment.etc to make rebases easier
+        (pkgs.runCommandLocal "prosody.cfg.lua-checked" {
+          nativeBuildInputs = [ cfg.package ];
+        } ''
+          cp ${config.environment.etc."prosody/prosody.cfg.lua".source} prosody.cfg.lua
+          prosodyctl --config ./prosody.cfg.lua check config
+          touch $out
+       '')
+      ];
       preStart = ''
         ${pkgs.envsubst}/bin/envsubst -i ${config.environment.etc."prosody/prosody.cfg.lua".source} -o /run/prosody/prosody.cfg.lua
       '';
