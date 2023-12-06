@@ -81,7 +81,16 @@ buildPythonPackage rec {
     hypothesis
     pytestCheckHook
   ]
-  ++ lib.flatten (lib.attrValues optional-dependencies);
+  ++ lib.flatten (
+    with optional-dependencies;
+    [
+      gcpubsub
+      redis
+      sqlalchemy
+      sqs
+      yaml
+    ]
+  ); # avoid dependency on kazoo -> openjdk -> gtk2
 
   pythonImportsCheck = [ "kombu" ];
 
@@ -90,6 +99,11 @@ buildPythonPackage rec {
     "test_driver_version"
     # AssertionError: assert [call('WATCH'..., 'test-tag')] ==...
     "test_global_keyprefix_transaction"
+  ];
+
+  disabledTestPaths = [
+    # disable azure because it no properly tests for the dependency
+    "t/unit/transport/test_azurestoragequeues.py"
   ];
 
   meta = with lib; {
