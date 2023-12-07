@@ -289,7 +289,16 @@ in
           domains = cfg.domain;
         };
 
-        nss.homedir_substring = "/home";
+        nss =
+          let
+            fallbackShell = pkgs.bash;
+            fallbackShellPath = "${fallbackShell}${fallbackShell.shellPath}";
+          in
+          {
+            homedir_substring = "/home";
+            default_shell = fallbackShellPath;
+            shell_fallback = fallbackShellPath;
+          };
 
         pam = {
           pam_pwd_expiration_warning = 3;
