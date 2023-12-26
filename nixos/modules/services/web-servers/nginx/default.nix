@@ -324,9 +324,7 @@ let
         ${cfg.appendConfig}
       '';
 
-  configPath = if cfg.enableReload then "/etc/nginx/nginx.conf" else configFile;
-
-  execCommand = "${cfg.package}/bin/nginx -c '${configPath}'";
+  execCommand = "${cfg.package}/bin/nginx -c /etc/nginx/nginx.conf";
 
   vhosts = concatStringsSep "\n" (
     mapAttrsToList (
@@ -1500,7 +1498,7 @@ in
           ${cfg.preStart}
           ${execCommand} -t
         '';
-
+        restartTriggers = optionals (!cfg.enableReload) [ configFile ];
         startLimitIntervalSec = 60;
         serviceConfig = {
           ExecStart = execCommand;
@@ -1641,9 +1639,7 @@ in
       )
     );
 
-    environment.etc."nginx/nginx.conf" = mkIf cfg.enableReload {
-      source = configFile;
-    };
+    environment.etc."nginx/nginx.conf".source = configFile;
 
     security.acme.certs =
       let
