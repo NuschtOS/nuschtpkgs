@@ -75,6 +75,7 @@ in
 stdenv.mkDerivation {
   name = isoName;
   __structuredAttrs = true;
+  preferLocalBuild = true; # avoud copying the big squashfs
 
   # the image will be self-contained so we can drop references
   # to the closure that was used to build it
