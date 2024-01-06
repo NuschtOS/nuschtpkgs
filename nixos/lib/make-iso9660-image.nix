@@ -66,6 +66,7 @@ in
 stdenv.mkDerivation {
   name = isoName;
   __structuredAttrs = true;
+  preferLocalBuild = true; # avoud copying the big squashfs
 
   buildCommandPath = ./make-iso9660-image.sh;
   nativeBuildInputs = [ xorriso syslinux zstd libossp_uuid ]
