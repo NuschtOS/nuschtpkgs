@@ -760,6 +760,9 @@ in
     };
     users.groups.${group} = { };
 
-    environment.systemPackages = [ mediawikiScripts ];
+    environment = {
+      etc."mediawiki/LocalSettings.php".source = mediawikiConfig;
+      systemPackages = [ mediawikiScripts ];
+    };
   };
 }
