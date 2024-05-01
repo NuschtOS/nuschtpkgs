@@ -126,13 +126,13 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "hydra";
-  version = "2024-03-08";
+  version = "2024-04-22";
 
   src = fetchFromGitHub {
     owner = "NixOS";
     repo = "hydra";
-    rev = "8f56209bd6f3b9ec53d50a23812a800dee7a1969";
-    hash = "sha256-mhEj02VruXPmxz3jsKHMov2ERNXk9DwaTAunWEO1iIQ=";
+    rev = "b72528be5074f3e62e9ae2c2ae8ef9c07a0b4dd3";
+    hash = "sha256-Dw3t/3DrRlwyl1gcQ9asQ6Vat4dXbDHDjD7tob3vUI4=";
   };
 
   buildInputs = [
@@ -214,12 +214,6 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   patches = [
-    # https://github.com/NixOS/hydra/security/advisories/GHSA-2p75-6g9f-pqgx
-    (fetchpatch2 {
-      name = "CVE-2024-32657.patch";
-      url = "https://github.com/NixOS/hydra/commit/b72528be5074f3e62e9ae2c2ae8ef9c07a0b4dd3.patch";
-      hash = "sha256-+y27N8AIaHj13mj0LwW7dkpzfzZ4xfjN8Ld23c5mzuU=";
-    })
     (fetchpatch2 {
       url = "https://github.com/NixOS/hydra/commit/916531dc9ccee52e6dab256232933fcf6d198158.patch";
       hash = "sha256-JOtlYr+K934UIqHvfLMd/jfRRU+Tci0kvtyhOvlwxEs=";
