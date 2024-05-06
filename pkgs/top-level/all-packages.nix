@@ -14120,6 +14120,10 @@ with pkgs;
     pythonBindings = true;
   };
 
+  sudoWithSssd = sudo.override {
+    withSssd = true;
+  };
+
   surge = callPackage ../applications/audio/surge {
     git = gitMinimal;
   };
