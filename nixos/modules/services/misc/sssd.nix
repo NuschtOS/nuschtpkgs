@@ -85,6 +85,15 @@ in
         '';
       };
 
+      sudoIntegration = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to make sudo look for sudoers rules from SSS.
+          For this to work, the `sudo` service must be enabled in the sssd configuration.
+        '';
+      };
+
       kcm = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -249,6 +258,11 @@ in
     (lib.mkIf cfg.subIDsIntegration {
       system.nssDatabases.subuid = [ "sss" ];
       system.nssDatabases.subgid = [ "sss" ];
+    })
+
+    (lib.mkIf cfg.sudoIntegration {
+      security.sudo.package = pkgs.sudoWithSssd;
+      system.nssDatabases.sudoers = [ "sss" ];
     })
   ];
 
