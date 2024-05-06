@@ -9890,6 +9890,10 @@ with pkgs;
     pythonBindings = true;
   };
 
+  sudoWithSssd = sudo.override {
+    withSssd = true;
+  };
+
   supersonic-wayland = supersonic.override {
     waylandSupport = true;
   };
