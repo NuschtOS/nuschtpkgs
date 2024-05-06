@@ -251,6 +251,8 @@ in
 
     services.sssd = {
       enable = true;
+      sshAuthorizedKeysIntegration = true;
+      sudoIntegration = true;
       settings = {
         "domain/${cfg.domain}" = {
           id_provider = "ipa";
