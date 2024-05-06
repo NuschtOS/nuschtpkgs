@@ -86,6 +86,15 @@ in
         '';
       };
 
+      sudoIntegration = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to make sudo look for sudoers rules from SSS.
+          For this to work, the `sudo` service must be enabled in the sssd configuration.
+        '';
+      };
+
       kcm = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -94,6 +103,7 @@ in
           Kerberos will be configured to cache credentials in SSS.
         '';
       };
+
       environmentFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -250,6 +260,10 @@ in
       };
       services.openssh.authorizedKeysCommand = "/etc/ssh/authorized_keys_command";
       services.openssh.authorizedKeysCommandUser = "nobody";
+    })
+    (lib.mkIf cfg.sudoIntegration {
+      security.sudo.package = pkgs.sudoWithSssd;
+      system.nssDatabases.sudoers = [ "sss" ];
     })
   ];
 
