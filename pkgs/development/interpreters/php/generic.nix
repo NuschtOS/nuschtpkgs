@@ -178,9 +178,12 @@ let
                   extensions
                   buildPecl
                   mkComposerRepository
+                  mkComposerVendor
                   buildComposerProject
+                  buildComposerProject2
                   buildComposerWithPlugin
                   composerHooks
+                  composerHooks2
                   mkExtension
                   ;
                 packages = php-packages.tools;
