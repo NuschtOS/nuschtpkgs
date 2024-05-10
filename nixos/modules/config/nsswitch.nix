@@ -50,6 +50,18 @@
         default = [ ];
       };
 
+      netgroup = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        description = ''
+          List of netgroup entries to configure in {file}`/etc/nsswitch.conf`.
+
+          Note that "files" is always prepended.
+
+          This option only takes effect if nscd is enabled.
+        '';
+        default = [];
+      };
+
       shadow = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         description = ''
@@ -133,6 +145,8 @@
       services:  ${lib.concatStringsSep " " config.system.nssDatabases.services}
       protocols: files
       rpc:       files
+
+      netgroup:  ${lib.concatStringsSep " " config.system.nssDatabases.netgroup}
     '';
 
     system.nssDatabases = {
@@ -145,6 +159,7 @@
         (lib.mkOrder 1499 [ "dns" ])
       ];
       services = lib.mkBefore [ "files" ];
+      netgroup = lib.mkBefore [ "files" ];
     };
   };
 }
