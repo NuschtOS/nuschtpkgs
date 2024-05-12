@@ -53,7 +53,8 @@ let
     ];
 
     cmakeFlags = [
-      "-DFETCHCONTENT_SOURCE_DIR_BASIS=${basis-universal}"
+      (lib.cmakeFeature "FETCHCONTENT_SOURCE_DIR_BASIS" "${basis-universal}")
+      (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-DGLM_ENABLE_EXPERIMENTAL")
     ];
 
     meta = with lib; {
@@ -91,15 +92,16 @@ stdenv.mkDerivation {
   ];
 
   cmakeFlags = [
-    "-DSERIOUS_PROTON_DIR=${serious-proton.src}"
-    "-DCPACK_PACKAGE_VERSION=${version.emptyepsilon}"
-    "-DCPACK_PACKAGE_VERSION_MAJOR=${major}"
-    "-DCPACK_PACKAGE_VERSION_MINOR=${minor}"
-    "-DCPACK_PACKAGE_VERSION_PATCH=${patch.emptyepsilon}"
-    "-DFETCHCONTENT_SOURCE_DIR_BASIS=${basis-universal}"
-    "-DFETCHCONTENT_SOURCE_DIR_MESHOPTIMIZER=${meshoptimizer.src}"
-    "-DCMAKE_AR=${stdenv.cc.cc}/bin/gcc-ar"
-    "-DCMAKE_RANLIB=${stdenv.cc.cc}/bin/gcc-ranlib"
+    (lib.cmakeFeature "SERIOUS_PROTON_DIR" "${serious-proton.src}")
+    (lib.cmakeFeature "CPACK_PACKAGE_VERSION" "${version.emptyepsilon}")
+    (lib.cmakeFeature "CPACK_PACKAGE_VERSION_MAJOR" "${major}")
+    (lib.cmakeFeature "CPACK_PACKAGE_VERSION_MINOR" "${minor}")
+    (lib.cmakeFeature "CPACK_PACKAGE_VERSION_PATCH" "${patch.emptyepsilon}")
+    (lib.cmakeFeature "FETCHCONTENT_SOURCE_DIR_BASIS" "${basis-universal}")
+    (lib.cmakeFeature "FETCHCONTENT_SOURCE_DIR_MESHOPTIMIZER" "${meshoptimizer.src}")
+    (lib.cmakeFeature "CMAKE_AR" "${stdenv.cc.cc}/bin/gcc-ar")
+    (lib.cmakeFeature "CMAKE_RANLIB" "${stdenv.cc.cc}/bin/gcc-ranlib")
+    (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-DGLM_ENABLE_EXPERIMENTAL")
     "-G Ninja"
   ];
 
