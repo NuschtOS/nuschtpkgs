@@ -166,7 +166,7 @@ mixRelease rec {
   meta = with lib; {
     description = "Mobilizon is an online tool to help manage your events, your profiles and your groups";
     homepage = "https://joinmobilizon.org/";
-    changelog = "https://framagit.org/framasoft/mobilizon/-/releases/${src.tag}";
+    changelog = "https://framagit.org/framasoft/mobilizon/-/releases/${src.tag or ""}";
     license = licenses.agpl3Plus;
     maintainers = with maintainers; [
       minijackson
