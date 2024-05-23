@@ -1,0 +1,12 @@
+diff --git a/lib/service/auth/ldap_authenticator.ex b/lib/service/auth/ldap_authenticator.ex
+index 3368a0fc..a39d39d9 100644
+--- a/lib/service/auth/ldap_authenticator.ex
++++ b/lib/service/auth/ldap_authenticator.ex
+@@ -191,7 +191,7 @@ defp search_filter(email, false) do
+   defp search_filter(email, group) when is_binary(group) do
+     :eldap.and([
+       :eldap.equalityMatch(~c"mail", to_charlist(email)),
+-      :eldap.equalityMatch(~c"memberOf", to_charlist(group))
++      :eldap.equalityMatch(~c"isMemberOf", to_charlist(group))
+     ])
+   end
