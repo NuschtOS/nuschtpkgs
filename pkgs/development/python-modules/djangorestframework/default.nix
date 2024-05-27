@@ -2,21 +2,29 @@
   lib,
   buildPythonPackage,
   fetchFromGitHub,
-  fetchpatch,
-  coreapi,
-  django,
-  django-guardian,
   pythonOlder,
-  pytest-django,
-  pytest7CheckHook,
+
+  # build-system
+  setuptools,
+
+  # dependencies
+  django,
   pytz,
+
+  # tests
+  coreapi,
+  coreschema,
+  django-guardian,
+  inflection,
+  psycopg2,
+  pytestCheckHook,
+  pytest-django,
   pyyaml,
-  uritemplate,
 }:
 
 buildPythonPackage rec {
   pname = "djangorestframework";
-  version = "3.14.0";
+  version = "3.15.1";
   format = "setuptools";
   disabled = pythonOlder "3.6";
 
@@ -24,36 +32,35 @@ buildPythonPackage rec {
     owner = "encode";
     repo = "django-rest-framework";
     rev = version;
-    hash = "sha256-Fnj0n3NS3SetOlwSmGkLE979vNJnYE6i6xwVBslpNz4=";
+    hash = "sha256-G914NvxRmKGkxrozoWNUIoI74YkYRbeNcQwIG4iSeXU=";
   };
 
-  patches = [
-    (fetchpatch {
-      name = "CVE-2024-21520.patch";
-      url = "https://github.com/encode/django-rest-framework/commit/3b41f0124194430da957b119712978fa2266b642.patch";
-      hash = "sha256-1NoRlV+sqHezDo28x38GD6DpcQuUF1q3YQXEb3SUvKQ=";
-    })
+  build-system = [
+    setuptools
   ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     django
     pytz
   ];
 
   nativeCheckInputs = [
     pytest-django
-    pytest7CheckHook
+    pytestCheckHook
 
     # optional tests
     coreapi
+    coreschema
     django-guardian
+    inflection
+    psycopg2
     pyyaml
-    uritemplate
   ];
 
   pythonImportsCheck = [ "rest_framework" ];
 
   meta = with lib; {
+    changelog = "https://github.com/encode/django-rest-framework/releases/tag/3.15.1";
     description = "Web APIs for Django, made easy";
     homepage = "https://www.django-rest-framework.org/";
     maintainers = with maintainers; [ desiderius ];
