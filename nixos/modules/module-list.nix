@@ -795,6 +795,7 @@
   ./services/misc/radarr.nix
   ./services/misc/readarr.nix
   ./services/misc/redmine.nix
+  ./services/misc/renovate.nix
   ./services/misc/ripple-data-api.nix
   ./services/misc/rippled.nix
   ./services/misc/rmfakecloud.nix
