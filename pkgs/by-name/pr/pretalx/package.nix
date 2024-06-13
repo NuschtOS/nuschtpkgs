@@ -4,6 +4,7 @@
   gettext,
   python3,
   fetchFromGitHub,
+  fetchpatch2,
   plugins ? [ ],
   nixosTests,
 }:
@@ -25,14 +26,6 @@ let
 
         # fails with some assertions
         doCheck = false;
-      });
-
-      djangorestframework = prev.djangorestframework.overridePythonAttrs (oldAttrs: rec {
-        version = "3.14.0";
-        src = oldAttrs.src.override {
-          rev = version;
-          hash = "sha256-Fnj0n3NS3SetOlwSmGkLE979vNJnYE6i6xwVBslpNz4=";
-        };
       });
     };
   };
@@ -83,6 +76,12 @@ python.pkgs.buildPythonApplication rec {
     # Fix persisent XSS in Markdown Preview
     # https://github.com/pretalx/pretalx/commit/58e9990d4e2c81d1eb9a23f77801efcf5155ac08
     ./0001-Sanitize-markdown-preview.patch
+    (fetchpatch2 {
+      # Backport support for Djangorestframework 3.15.x
+      name = "pretalx-drf-3.15.patch";
+      url = "https://github.com/pretalx/pretalx/commit/43a0416c6968d64ea57720abdb82f482940b11f8.patch";
+      hash = "sha256-Iw1xVF7j7c712kwIk1SMbQSF0ixMUZr1BJib3KAb2HY=";
+    })
   ];
 
   postPatch = ''
@@ -109,6 +108,7 @@ python.pkgs.buildPythonApplication rec {
     "django-csp"
     "django-filter"
     "django-hierarkey"
+    "djangorestframework"
     "markdown"
     "pillow"
     "python-dateutil"
