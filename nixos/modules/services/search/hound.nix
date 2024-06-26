@@ -105,6 +105,10 @@ in
       '';
     };
 
+    services.hound.settings = {
+      dbpath = "${config.services.hound.home}/data";
+    };
+
     systemd.services.hound = {
       description = "Hound Code Search";
       wantedBy = [ "multi-user.target" ];
