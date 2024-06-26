@@ -106,6 +106,10 @@ in
       };
     };
 
+    services.hound.settings = {
+      dbpath = "${config.services.hound.home}/data";
+    };
+
     systemd.services.hound =
       let
         configFile = pkgs.writeTextFile {
