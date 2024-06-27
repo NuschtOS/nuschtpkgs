@@ -1,0 +1,61 @@
+name: Rebase upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 14 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "nixos-unstable"
+            upstream: "nixos-unstable"
+          - target: "nixos-24.05"
+            upstream: "nixos-24.05"
+          - target: "backports-24.05"
+            upstream: "nixos-24.05"
+
+    steps:
+    - uses: actions/cache@v4
+      with:
+        path: .git
+        key: ${{ matrix.target }}-git-${{ hashFiles('.git') }}
+        restore-keys: |
+          ${{ matrix.target }}-git-
+
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ matrix.target }}
+        fetch-depth: 100
+        token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
+
+    - name: git setup
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+
+    - name: fetch upstream
+      run: |
+        # might already be there if the cache was used
+        git remote add upstream https://github.com/NixOS/nixpkgs.git || true
+        git fetch --no-tags --prune --no-recurse-submodules --depth 2000 upstream ${{ matrix.upstream }}
+
+    - name: rebase
+      run: |
+        git rebase upstream/${{ matrix.upstream }}
+
+    - name: push
+      run: |
+        git push --force-with-lease origin ${{ matrix.target }}
+
+    - name: collect garbage
+      run: |
+        git gc
