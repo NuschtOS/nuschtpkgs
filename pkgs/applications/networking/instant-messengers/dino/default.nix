@@ -11,7 +11,6 @@
 , pcre2
 , qrencode
 , icu
-, gspell
 , srtp
 , libnice
 , gnutls
@@ -25,20 +24,14 @@
 
 stdenv.mkDerivation rec {
   pname = "dino";
-  version = "0.4.3";
+  version = "0.4.4-unstable-2024-10-18";
 
   src = fetchFromGitHub {
     owner = "dino";
     repo = "dino";
-    rev = "v${version}";
-    sha256 = "sha256-smy/t6wTCnG0kuRFKwyeLENKqOQDhL0fZTtj3BHo6kw=";
+    rev = "1e9a45f48143df6f3e36f3cd056a5b88271f8c2f";
+    hash = "sha256-jMHoCCs7492icr8scJQC/BR5wxHj0enGADmnzUPAo9s=";
   };
-
-  patches = [
-    # fixes build failure https://github.com/dino/dino/issues/1576
-    # backport of https://github.com/dino/dino/commit/657502955567dd538e56f300e075c7db52e25d74
-    ./fix-compile-new-vala-c.diff
-  ];
 
   postPatch = ''
     # don't overwrite manually set version information
@@ -72,7 +65,6 @@ stdenv.mkDerivation rec {
     pcre2
     icu
     libsignal-protocol-c
-    gspell
     srtp
     libnice
     gnutls
@@ -92,7 +84,7 @@ stdenv.mkDerivation rec {
     "-DRTP_ENABLE_VP9=true"
     "-DVERSION_FOUND=true"
     "-DVERSION_IS_RELEASE=true"
-    "-DVERSION_FULL=${version}"
+    "-DVERSION_FULL=0.4.4"
     "-DXGETTEXT_EXECUTABLE=${lib.getBin buildPackages.gettext}/bin/xgettext"
     "-DMSGFMT_EXECUTABLE=${lib.getBin buildPackages.gettext}/bin/msgfmt"
     "-DGLIB_COMPILE_RESOURCES_EXECUTABLE=${lib.getDev buildPackages.glib}/bin/glib-compile-resources"
@@ -105,8 +97,9 @@ stdenv.mkDerivation rec {
   doCheck = true;
   checkPhase = ''
     runHook preCheck
+    ./libdino-test
+    ./omemo-test
     ./xmpp-vala-test
-    ./signal-protocol-vala-test
     runHook postCheck
   '';
 
