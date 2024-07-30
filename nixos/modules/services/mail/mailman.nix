@@ -290,6 +290,14 @@ in
         '';
       };
 
+      dbPassFile = lib.mkOption {
+        default = null;
+        type = lib.types.nullOr lib.types.str;
+        description = ''
+          Path to the file containing the value for `MAILMAN_REST_API_PASS`.
+        '';
+      };
+
       serve = {
         enable = lib.mkEnableOption "automatic nginx and uwsgi setup for mailman-web";
 
@@ -616,50 +624,60 @@ in
           requires = lib.optional withPostgresql "postgresql.service";
           serviceConfig.RemainAfterExit = true;
           serviceConfig.Type = "oneshot";
-          script = ''
-            install -m0750 -o mailman -g mailman ${mailmanCfgFile} /etc/mailman.cfg
-            ${
-              if cfg.restApiPassFile == null then
-                ''
-                  sed -i "s/#NIXOS_MAILMAN_REST_API_PASS_SECRET#/$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)/g" \
-                    /etc/mailman.cfg
-                ''
-              else
-                ''
-                  ${pkgs.replace-secret}/bin/replace-secret \
-                    '#NIXOS_MAILMAN_REST_API_PASS_SECRET#' \
-                    ${cfg.restApiPassFile} \
-                    /etc/mailman.cfg
-                ''
-            }
+          script =
+            ''
+              install -m0750 -o mailman -g mailman ${mailmanCfgFile} /etc/mailman.cfg
+              ${
+                if cfg.restApiPassFile == null then
+                  ''
+                    sed -i "s/#NIXOS_MAILMAN_REST_API_PASS_SECRET#/$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)/g" \
+                      /etc/mailman.cfg
+                  ''
+                else
+                  ''
+                    ${pkgs.replace-secret}/bin/replace-secret \
+                      '#NIXOS_MAILMAN_REST_API_PASS_SECRET#' \
+                      ${cfg.restApiPassFile} \
+                      /etc/mailman.cfg
+                  ''
+              }
 
-            mailmanDir=/var/lib/mailman
-            mailmanWebDir=/var/lib/mailman-web
+            ''
+            + lib.optionalString (cfg.dbPassFile != null) ''
+              ${pkgs.replace-secret}/bin/replace-secret \
+                  '#NIXOS_MAILMAN_DB_PW#' \
+                  ${cfg.dbPassFile} \
+                  /etc/mailman.cfg
+            ''
+            + ''
 
-            mailmanCfg=$mailmanDir/mailman-hyperkitty.cfg
-            mailmanWebCfg=$mailmanWebDir/settings_local.json
+              mailmanDir=/var/lib/mailman
+              mailmanWebDir=/var/lib/mailman-web
 
-            install -m 0775 -o mailman -g mailman -d /var/lib/mailman-web-static
-            install -m 0770 -o mailman -g mailman -d $mailmanDir
-            install -m 0770 -o ${cfg.webUser} -g mailman -d $mailmanWebDir
+              mailmanCfg=$mailmanDir/mailman-hyperkitty.cfg
+              mailmanWebCfg=$mailmanWebDir/settings_local.json
 
-            if [ ! -e $mailmanWebCfg ]; then
-                hyperkittyApiKey=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)
-                secretKey=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)
+              install -m 0775 -o mailman -g mailman -d /var/lib/mailman-web-static
+              install -m 0770 -o mailman -g mailman -d $mailmanDir
+              install -m 0770 -o ${cfg.webUser} -g mailman -d $mailmanWebDir
 
-                install -m 0440 -o root -g mailman \
-                  <(jq -n '.MAILMAN_ARCHIVER_KEY=$archiver_key | .SECRET_KEY=$secret_key' \
-                    --arg archiver_key "$hyperkittyApiKey" \
-                    --arg secret_key "$secretKey") \
-                  "$mailmanWebCfg"
-            fi
+              if [ ! -e $mailmanWebCfg ]; then
+                  hyperkittyApiKey=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)
+                  secretKey=$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 64)
 
-            hyperkittyApiKey="$(jq -r .MAILMAN_ARCHIVER_KEY "$mailmanWebCfg")"
-            mailmanCfgTmp=$(mktemp)
-            sed "s/@API_KEY@/$hyperkittyApiKey/g" ${mailmanHyperkittyCfg} >"$mailmanCfgTmp"
-            chown mailman:mailman "$mailmanCfgTmp"
-            mv "$mailmanCfgTmp" "$mailmanCfg"
-          '';
+                  install -m 0440 -o root -g mailman \
+                    <(jq -n '.MAILMAN_ARCHIVER_KEY=$archiver_key | .SECRET_KEY=$secret_key' \
+                      --arg archiver_key "$hyperkittyApiKey" \
+                      --arg secret_key "$secretKey") \
+                    "$mailmanWebCfg"
+              fi
+
+              hyperkittyApiKey="$(jq -r .MAILMAN_ARCHIVER_KEY "$mailmanWebCfg")"
+              mailmanCfgTmp=$(mktemp)
+              sed "s/@API_KEY@/$hyperkittyApiKey/g" ${mailmanHyperkittyCfg} >"$mailmanCfgTmp"
+              chown mailman:mailman "$mailmanCfgTmp"
+              mv "$mailmanCfgTmp" "$mailmanCfg"
+            '';
         };
 
         mailman-web-setup = {
