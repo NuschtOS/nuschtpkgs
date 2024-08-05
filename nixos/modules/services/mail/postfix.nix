@@ -565,6 +565,7 @@ in
           with types;
           attrsOf (oneOf [
             bool
+            int
             str
             (listOf str)
           ]);
