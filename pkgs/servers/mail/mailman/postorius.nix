@@ -19,10 +19,13 @@ buildPythonPackage rec {
 
   build-system = [ setuptools ];
 
-  dependencies = [
-    django-mailman3
-    readme-renderer
-  ];
+  dependencies =
+    [
+      django-mailman3
+      readme-renderer
+    ]
+    # support markdown rendering of descriptions (and emails)
+    ++ readme-renderer.optional-dependencies.md;
 
   nativeCheckInputs = [
     beautifulsoup4
