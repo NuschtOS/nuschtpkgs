@@ -143,6 +143,7 @@ python.pkgs.buildPythonApplication rec {
       zxcvbn
     ]
     ++ beautifulsoup4.optional-dependencies.lxml
+    ++ django.optional-dependencies.argon2
     ++ plugins;
 
   passthru.optional-dependencies = {
