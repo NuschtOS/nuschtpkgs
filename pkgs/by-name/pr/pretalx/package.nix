@@ -136,7 +136,9 @@ python.pkgs.buildPythonApplication rec {
     vobject
     whitenoise
     zxcvbn
-  ] ++ beautifulsoup4.optional-dependencies.lxml ++ plugins;
+  ] ++ beautifulsoup4.optional-dependencies.lxml
+  ++ django.optional-dependencies.argon2
+  ++ plugins;
 
   passthru.optional-dependencies = {
     mysql = with python.pkgs; [
