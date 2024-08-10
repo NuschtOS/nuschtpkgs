@@ -28,6 +28,9 @@ let
       cfg.configFile
     ];
 
+  configFile = pkgs.writeText "opendkim.conf" (
+    lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "${name} ${value}") cfg.settings)
+  );
 in
 {
   imports = [
@@ -89,9 +92,11 @@ in
       };
 
       settings = lib.mkOption {
-        type = with lib.types; submodule {
-          freeformType = attrsOf str;
-        };
+        type =
+          with lib.types;
+          submodule {
+            freeformType = attrsOf str;
+          };
         default = { };
         description = "Additional opendkim configuration";
       };
@@ -110,10 +115,14 @@ in
       opendkim.gid = config.ids.gids.opendkim;
     };
 
-    environment.systemPackages = [ pkgs.opendkim ];
+    environment = {
+      etc = lib.mkIf (cfg.settings != { }) {
+        "opendkim/opendkim.conf".source = configFile;
+      };
+      systemPackages = [ pkgs.opendkim ];
+    };
 
-    services.opendkim.configFile = lib.mkIf (cfg.settings != { }) (pkgs.writeText "opendkim.conf"
-      (lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "${name} ${value}") cfg.settings)));
+    services.opendkim.configFile = lib.mkIf (cfg.settings != { }) configFile;
 
     systemd.tmpfiles.rules = [
       "d '${cfg.keyPath}' - ${cfg.user} ${cfg.group} - -"
