@@ -1,7 +1,6 @@
 { lib, stdenv, nodejs-slim, bundlerEnv, nixosTests
-, yarn, callPackage, ruby, writeShellScript
-, fetchYarnDeps, fixup-yarn-lock
-, brotli
+, yarn-berry, callPackage, ruby, writeShellScript
+, brotli, python3
 
   # Allow building a fork or custom version of Mastodon:
 , pname ? "mastodon"
@@ -28,12 +27,12 @@ stdenv.mkDerivation rec {
     pname = "${pname}-modules";
     inherit src version;
 
-    yarnOfflineCache = fetchYarnDeps {
-      yarnLock = "${src}/yarn.lock";
+    yarnOfflineCache = callPackage ./yarn.nix {
+      inherit src;
       hash = yarnHash;
     };
 
-    nativeBuildInputs = [ fixup-yarn-lock nodejs-slim yarn mastodonGems mastodonGems.wrappedRuby brotli ];
+    nativeBuildInputs = [ nodejs-slim yarn-berry mastodonGems mastodonGems.wrappedRuby brotli python3 ];
 
     RAILS_ENV = "production";
     NODE_ENV = "production";
@@ -42,19 +41,21 @@ stdenv.mkDerivation rec {
       runHook preBuild
 
       export HOME=$PWD
-      fixup-yarn-lock ~/yarn.lock
-      yarn config --offline set yarn-offline-mirror $yarnOfflineCache
-      yarn install --offline --frozen-lockfile --ignore-engines --ignore-scripts --no-progress
+      export YARN_ENABLE_TELEMETRY=0
+      export npm_config_nodedir=${nodejs-slim}
+      export SECRET_KEY_BASE_DUMMY=1
+
+      mkdir -p ~/.yarn/berry
+      ln -s $yarnOfflineCache ~/.yarn/berry/cache
+
+      yarn install --immutable --immutable-cache
 
       patchShebangs ~/bin
       patchShebangs ~/node_modules
 
-      # skip running yarn install
-      rm -rf ~/bin/yarn
+      bundle exec rails assets:precompile
 
-      OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder \
-        rails assets:precompile
-      yarn cache clean --offline
+      yarn cache clean --all
       rm -rf ~/node_modules/.cache
 
       # Create missing static gzip and brotli files
@@ -133,7 +134,8 @@ stdenv.mkDerivation rec {
     runHook preInstall
 
     mkdir -p $out
-    cp -r * $out/
+    mv .{env*,ruby*} $out/
+    mv * $out/
     ln -s ${run-streaming} $out/run-streaming.sh
 
     runHook postInstall
