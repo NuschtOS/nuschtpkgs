@@ -23,7 +23,7 @@ in
         codec2
         js8call
         m17-cxx-demod
-        alsaUtils
+        alsa-utils
         netcat
       ];
       serviceConfig = {
