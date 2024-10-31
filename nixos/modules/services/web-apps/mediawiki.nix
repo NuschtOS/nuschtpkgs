@@ -48,7 +48,7 @@ let
     preferLocalBuild = true;
   } ''
     mkdir -p $out/bin
-    for i in changePassword createAndPromote resetUserEmail userOptions edit nukePage update; do
+    for i in changePassword createAndPromote deleteUserEmail resetUserEmail userOptions edit nukePage update; do
       echo "#! ${pkgs.runtimeShell}
       become=(exec)
       if [[ \"\$(id -u)\" != ${user} ]]; then
