@@ -48,10 +48,16 @@ let
     preferLocalBuild = true;
   } ''
     mkdir -p $out/bin
-    for i in changePassword.php createAndPromote.php resetUserEmail.php userOptions.php edit.php nukePage.php update.php; do
-      makeWrapper ${php}/bin/php $out/bin/mediawiki-$(basename $i .php) \
-        --set MEDIAWIKI_CONFIG ${mediawikiConfig} \
-        --add-flags ${pkg}/share/mediawiki/maintenance/$i
+    for i in changePassword createAndPromote resetUserEmail userOptions edit nukePage update; do
+      echo "#! ${pkgs.runtimeShell}
+      become=(exec)
+      if [[ \"\$(id -u)\" != ${user} ]]; then
+        become=(exec /run/wrappers/bin/sudo -u ${user} --)
+      fi
+      \"\''${become[@]}\" ${php}/bin/php ${pkg}/share/mediawiki/maintenance/run.php --conf ${mediawikiConfig} \
+        ${pkg}/share/mediawiki/maintenance/$i.php \"\$@\"
+      " > $out/bin/mediawiki-$i
+      chmod +x $out/bin/mediawiki-$i
     done
   '';
 
