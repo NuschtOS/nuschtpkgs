@@ -8,19 +8,15 @@
 
 buildGoModule rec {
   pname = "stayrtr";
-  version = "0.5.1";
+  version = "0.6.1";
 
   src = fetchFromGitHub {
     owner = "bgp";
     repo = "stayrtr";
     rev = "v${version}";
-    hash = "sha256-/KwL/SEnHquFhPcYXpvQs71W4K1BrbqTPakatTNF47Q=";
+    hash = "sha256-uNZe3g8hs9c0uXrkWSTA+e/gziOpWqx5oFIJ2ZPgEzU=";
   };
-  vendorHash = "sha256-ndMME9m3kbv/c1iKlU2Pn/YoiRQy7jfVQri3M+qhujk=";
-
-  patches = [
-    ./go.mod.patch
-  ];
+  vendorHash = "sha256-0PtQzwBhUoASUMnAAVZ4EIDmqIEaH0nct2ngyIkR+Qg=";
 
   ldflags = [
     "-s"
@@ -33,9 +29,11 @@ buildGoModule rec {
   };
 
   meta = with lib; {
-    description = "Simple RPKI-To-Router server. (Hard fork of GoRTR)";
+    changelog = "https://github.com/bgp/stayrtr/releases/tag/v${version}";
+    description = "RPKI-To-Router server implementation in Go";
     homepage = "https://github.com/bgp/stayrtr/";
     license = licenses.bsd3;
+    mainProgram = "stayrtr";
     maintainers = with maintainers; [ _0x4A6F ];
   };
 }

@@ -40839,8 +40839,6 @@ with pkgs;
 
   gortr = callPackage ../servers/gortr { };
 
-  stayrtr = callPackage ../servers/stayrtr { };
-
   sunshine = callPackage ../servers/sunshine { };
 
   sentencepiece = callPackage ../development/libraries/sentencepiece { };
