@@ -1,7 +1,6 @@
 {
   lib,
   fetchFromGitHub,
-  fetchpatch2,
   python3,
   nginx,
 }:
@@ -25,25 +24,16 @@ let
 in
 python.pkgs.buildPythonApplication rec {
   pname = "gixy";
-  version = "0.1.20";
+  version = "0.1.24-unstable-2024-08-17";
   pyproject = true;
 
   # fetching from GitHub because the PyPi source is missing the tests
   src = fetchFromGitHub {
-    owner = "yandex";
+    owner = "dvershinin";
     repo = "gixy";
-    rev = "v${version}";
-    sha256 = "14arz3fjidb8z37m08xcpih1391varj8s0v3gri79z3qb4zq5k6b";
+    rev = "67cecfe8c5f261927c7ea06989b1e6b856e68a24";
+    hash = "sha256-yeVZbZmyCtvq/YzcleUVirq/82VRPSr8OTPWieTdhgs=";
   };
-
-  patches = [
-    # Migrate tests to pytest
-    # https://github.com/yandex/gixy/pull/146
-    (fetchpatch2 {
-      url = "https://github.com/yandex/gixy/compare/6f68624a7540ee51316651bda656894dc14c9a3e...b1c6899b3733b619c244368f0121a01be028e8c2.patch";
-      hash = "sha256-6VUF2eQ2Haat/yk8I5qIXhHdG9zLQgEXJMLfe25OKEo=";
-    })
-  ];
 
   build-system = [ python.pkgs.setuptools ];
 
@@ -70,7 +60,7 @@ python.pkgs.buildPythonApplication rec {
       Gixy is a tool to analyze Nginx configuration.
       The main goal of Gixy is to prevent security misconfiguration and automate flaw detection.
     '';
-    homepage = "https://github.com/yandex/gixy";
+    homepage = "https://github.com/dvershinin/gixy";
     sourceProvenance = [ lib.sourceTypes.fromSource ];
     license = lib.licenses.mpl20;
     maintainers = [ lib.maintainers.willibutz ];
