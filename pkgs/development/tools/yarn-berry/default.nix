@@ -30,6 +30,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildPhase = ''
     runHook preBuild
+    # Internal Error: spawn ETXTBSY
+    # https://github.com/yarnpkg/berry/issues/6309#issuecomment-2133384672
+    export UV_USE_IO_URING=0
     yarn workspace @yarnpkg/cli build:cli
     runHook postBuild
   '';
