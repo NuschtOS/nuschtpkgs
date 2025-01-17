@@ -35,7 +35,7 @@ lib.fix (
             {
               version = "3.1.0";
               src = src.override {
-                rev = "refs/tags/v${new.version}";
+                tag = new.version;
                 hash = "sha256-ID5OJdARd2N2GYEpcYOpxenpZlhWnWr5fAClAgqEgGg=";
               };
             }
