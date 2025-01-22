@@ -2,6 +2,7 @@
   stdenv,
   fetchFromGitHub,
   lib,
+  bash,
   callPackage,
   gradle_8,
   makeBinaryWrapper,
@@ -180,9 +181,34 @@ stdenv.mkDerivation (finalAttrs: {
     mkdir -p "$out/bin"
     ln -s "${pkg_path}/ghidraRun" "$out/bin/ghidra"
     ln -s "${pkg_path}/support/analyzeHeadless" "$out/bin/ghidra-analyzeHeadless"
+
     wrapProgram "${pkg_path}/support/launch.sh" \
       --set-default NIX_GHIDRAHOME "${pkg_path}/Ghidra" \
       --prefix PATH : ${lib.makeBinPath [ openjdk21 ]}
+
+    cat >"$out/bin/ghidra-server" <<EOL
+      #!${lib.getExe bash}
+      exec ${lib.getExe openjdk21} -jar ${pkg_path}/Ghidra/Features/GhidraServer/data/yajsw-stable-*/wrapper.jar
+    EOL
+    chmod +x "$out/bin/ghidra-server"
+
+    cat >"$out/bin/ghidra-server-admin" <<EOL
+      #!${lib.getExe bash}
+      if [ "$#" -eq 0 ]; then
+        echo 'No config file provided' >&2
+        exit 1
+      fi
+
+      # Identify server process owner if set within server.conf
+      OWNER="$(grep '^wrapper.app.account=' "$1" | cut -d '=' -f 2)"
+
+      if [ -z "''${OWNER}" -o "''${OWNER}" = "$(whoami)" ]; then
+        exec ${pkg_path}/support/launch.sh fg jre svrAdmin 128M -DUserAdmin.invocation=${pkg_path}/server/ ghidra.server.ServerAdmin "$@"
+      else
+        echo This script expects to be run as ''${OWNER}!
+      fi
+    EOL
+    chmod +x "$out/bin/ghidra-server-admin"
   '';
 
   passthru = {
