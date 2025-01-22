@@ -8,6 +8,7 @@
   pam,
   makeDesktopItem,
   icoutils,
+  writeShellScriptBin,
 }:
 
 let
@@ -70,6 +71,26 @@ stdenv.mkDerivation rec {
 
     wrapProgram "${pkg_path}/support/launch.sh" \
       --prefix PATH : ${lib.makeBinPath [ openjdk21 ]}
+
+    ln -s ${writeShellScriptBin "ghidra-server" ''
+      exec ${lib.getExe openjdk21} -jar ${pkg_path}/Ghidra/Features/GhidraServer/data/yajsw-stable-*/wrapper.jar
+    ''} "$out/bin/ghidra-server"
+
+    ln -s ${writeShellScriptBin "ghidra-server-admin" ''
+      if [ "$#" -eq 0 ]; then
+        echo 'No config file provided' >&2
+        exit 1
+      fi
+
+      # Identify server process owner if set within server.conf
+      OWNER="$(grep '^wrapper.app.account=' "$1" | cut -d '=' -f 2)"
+
+      if [ -z "''${OWNER}" -o "''${OWNER}" = "$(whoami)" ]; then
+        exec ${pkg_path}/support/launch.sh fg jre svrAdmin 128M -DUserAdmin.invocation=$pkg_path/server/ ghidra.server.ServerAdmin "$@"
+      else
+        echo This script expects to be run as ''${OWNER}!
+      fi
+    ''} "$out/bin/ghidra-server-admin"
   '';
 
   meta = with lib; {
