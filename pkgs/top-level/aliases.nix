@@ -1107,13 +1107,6 @@ mapAliases {
   sandboxfs = throw "'sandboxfs' has been removed due to being unmaintained, consider using linux namespaces for sandboxing instead"; # Added 2024-06-06
   sane-backends-git = throw "'sane-backends-git' has been renamed to/replaced by 'sane-backends'"; # Converted to throw 2024-10-17
   scantailor = scantailor-advanced; # Added 2022-05-26
-  schildichat-web = throw ''
-    schildichat has been removed as it is severely lacking behind the Element upstream and does not receive regular security fixes.
-    Please participate in upstream discussion on getting out new releases:
-    https://github.com/SchildiChat/schildichat-desktop/issues/212
-    https://github.com/SchildiChat/schildichat-desktop/issues/215''; # Added 2023-12-05
-  schildichat-desktop = schildichat-web;
-  schildichat-desktop-wayland = schildichat-web;
   scitoken-cpp = scitokens-cpp; # Added 2024-02-12
   semeru-bin-16 = throw "Semeru 16 has been removed as it has reached its end of life"; # Added 2024-08-01
   semeru-jre-bin-16 = throw "Semeru 16 has been removed as it has reached its end of life"; # Added 2024-08-01
