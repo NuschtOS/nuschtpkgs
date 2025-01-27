@@ -11,10 +11,9 @@
 , nodejs
 , prefetch-yarn-deps
 , electron
-, Security
-, AppKit
-, CoreServices
 , sqlcipher
+, fixup-yarn-lock
+, jq
 }:
 
 let
@@ -34,11 +33,12 @@ stdenv.mkDerivation rec {
   };
 
   offlineCache = fetchYarnDeps {
+    name = "yarn-desktop-offline-cache";
     yarnLock = src + "/element-desktop/yarn.lock";
     sha256 = pinData.desktopYarnHash;
   };
 
-  nativeBuildInputs = [ yarn prefetch-yarn-deps nodejs makeWrapper copyDesktopItems ];
+  nativeBuildInputs = [ yarn prefetch-yarn-deps nodejs makeWrapper copyDesktopItems fixup-yarn-lock jq ];
   inherit (element-desktop) seshat keytar;
 
   configurePhase = ''
@@ -112,7 +112,7 @@ stdenv.mkDerivation rec {
       desktopName = "SchildiChat";
       genericName = "Matrix Client";
       comment = meta.description;
-      categories = [ "Network" "InstantMessaging" "Chat" ];
+      categories = [ "Network" "InstantMessaging" "Chat" "VideoConference" ];
       startupWMClass = "schildichat";
       mimeTypes = [ "x-scheme-handler/element" ];
     })
