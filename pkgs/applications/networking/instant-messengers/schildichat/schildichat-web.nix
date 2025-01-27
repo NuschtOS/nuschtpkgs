@@ -1,10 +1,14 @@
-{ stdenv, lib
+{ stdenv
+, lib
 , fetchFromGitHub
 , fetchYarnDeps
 , nodejs
+, fixup-yarn-lock
 , yarn
 , prefetch-yarn-deps
-, writeText, jq, conf ? {}
+, writeText
+, jq
+, conf ? { }
 }:
 
 let
@@ -14,7 +18,8 @@ let
   };
   configOverrides = writeText "element-config-overrides.json" (builtins.toJSON (noPhoningHome // conf));
 
-in stdenv.mkDerivation rec {
+in
+stdenv.mkDerivation rec {
   pname = "schildichat-web";
   inherit (pinData) version;
 
@@ -27,19 +32,21 @@ in stdenv.mkDerivation rec {
   };
 
   webOfflineCache = fetchYarnDeps {
+    name = "yarn-web-offline-cache";
     yarnLock = src + "/element-web/yarn.lock";
     sha256 = pinData.webYarnHash;
   };
   jsSdkOfflineCache = fetchYarnDeps {
+    name = "yarn-js-sdk-offline-cache";
     yarnLock = src + "/matrix-js-sdk/yarn.lock";
     sha256 = pinData.jsSdkYarnHash;
   };
-  reactSdkOfflineCache = fetchYarnDeps {
-    yarnLock = src + "/matrix-react-sdk/yarn.lock";
-    sha256 = pinData.reactSdkYarnHash;
-  };
 
-  nativeBuildInputs = [ yarn prefetch-yarn-deps jq nodejs ];
+  postPatch = ''
+    cp res/css/sc-cpd-overrides.css element-web/res/css/sc-cpd-overrides.css
+  '';
+
+  nativeBuildInputs = [ yarn prefetch-yarn-deps jq nodejs fixup-yarn-lock ];
 
   configurePhase = ''
     runHook preConfigure
@@ -70,13 +77,6 @@ in stdenv.mkDerivation rec {
     patchShebangs node_modules
     popd
 
-    pushd matrix-react-sdk
-    fixup-yarn-lock yarn.lock
-    yarn config --offline set yarn-offline-mirror $reactSdkOfflineCache
-    yarn install --offline --frozen-lockfile --ignore-platform --ignore-scripts --no-progress --non-interactive
-    patchShebangs node_modules scripts
-    popd
-
     runHook postConfigure
   '';
 
@@ -85,9 +85,9 @@ in stdenv.mkDerivation rec {
 
     pushd element-web
     export VERSION=${version}
-    yarn build:res --offline
-    yarn build:module_system --offline
-    yarn build:bundle --offline
+    yarn --offline build:res
+    yarn --offline build:module_system
+    yarn --offline build:bundle
     popd
 
     runHook postBuild
