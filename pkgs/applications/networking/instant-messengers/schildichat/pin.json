@@ -1,8 +1,8 @@
 {
-  "version": "1.11.90-sc.0.test.0",
-  "rev": "a9f81d8ebe8fec6217ab7552e5678cba25ce91ef",
-  "srcHash": "sha256-NpvUonlu67sG4P07MnpX9jtzShvUdB2hgS0RxTPWCEY=",
-  "webYarnHash": "sha256-+oSQsAiGQhQiCCG/cNVrCJSrSEf9VO0zNEoyRdPsVz0=",
-  "jsSdkYarnHash": "sha256-bcxvDofv6UJRSAR286qkePcDKpu/o24EdejUA8Dm6sI=",
-  "desktopYarnHash": "sha256-q/dBy8xnjjFpCwSjYeE4wSFtKqolYPRMzGH+/AlFNF0="
+  "version": "1.11.91-sc.0.test.0",
+  "rev": "aeeddd842b2623646a8420bb75defdcaef0591a3",
+  "srcHash": "sha256-PLujT/xK6+yNvZPBREcrjA6gloFTLsXdpNyl5FSTmNc=",
+  "webYarnHash": "sha256-in7qiGIXP+Ki820RB/uB2st2FIwrxjqYpdOmmLI6RSM=",
+  "desktopYarnHash": "sha256-MWZgWZ5oh4QGMZ7vQQUsm3DfOxbfy/YVuxsg33Gx0rU=",
+  "compoundWebYarnHash": "sha256-5w1ys9Sd9i3iWABVjHN3V3GxjLtqTVoB0CzmsS5i4TQ="
 }
