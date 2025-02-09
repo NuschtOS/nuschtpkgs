@@ -36,10 +36,10 @@ stdenv.mkDerivation rec {
     yarnLock = src + "/element-web/yarn.lock";
     sha256 = pinData.webYarnHash;
   };
-  jsSdkOfflineCache = fetchYarnDeps {
-    name = "yarn-js-sdk-offline-cache";
-    yarnLock = src + "/matrix-js-sdk/yarn.lock";
-    sha256 = pinData.jsSdkYarnHash;
+  compoundWebOfflineCache = fetchYarnDeps {
+    name = "compound-web-offline-cache";
+    yarnLock = src + "/compound-web/yarn.lock";
+    sha256 = pinData.compoundWebYarnHash;
   };
 
   postPatch = ''
@@ -64,15 +64,13 @@ stdenv.mkDerivation rec {
     yarn config --offline set yarn-offline-mirror $webOfflineCache
     yarn install --offline --frozen-lockfile --ignore-platform --ignore-scripts --no-progress --non-interactive
     patchShebangs node_modules
-    rm -rf node_modules/matrix-react-sdk
-    ln -s $PWD/../matrix-react-sdk node_modules/
-    rm -rf node_modules/matrix-js-sdk
-    ln -s $PWD/../matrix-js-sdk node_modules/
+    rm -rf node_modules/@vector-im/compound-web/
+    ln -s $PWD/../compound-web node_modules/@vector-im/
     popd
 
-    pushd matrix-js-sdk
+    pushd compound-web
     fixup-yarn-lock yarn.lock
-    yarn config --offline set yarn-offline-mirror $jsSdkOfflineCache
+    yarn config --offline set yarn-offline-mirror $compoundWebOfflineCache
     yarn install --offline --frozen-lockfile --ignore-platform --ignore-scripts --no-progress --non-interactive
     patchShebangs node_modules
     popd
@@ -82,6 +80,10 @@ stdenv.mkDerivation rec {
 
   buildPhase = ''
     runHook preBuild
+
+    pushd compound-web
+    yarn build
+    popd
 
     pushd element-web
     export VERSION=${version}
