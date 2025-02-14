@@ -3,11 +3,9 @@
   lib,
   fetchFromGitLab,
   nix-update-script,
-  cargo,
   meson,
   ninja,
-  rustPlatform,
-  rustc,
+  rustPackages_1_83,
   pkg-config,
   glib,
   grass-sass,
@@ -28,6 +26,9 @@
   glycin-loaders,
 }:
 
+let
+  inherit (rustPackages_1_83) cargo rustc rustPlatform;
+in
 stdenv.mkDerivation rec {
   pname = "fractal";
   version = "10.1";
