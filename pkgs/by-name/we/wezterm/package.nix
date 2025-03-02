@@ -1,63 +1,61 @@
 {
-  stdenv,
-  rustPlatform,
   lib,
+  stdenv,
   fetchFromGitHub,
-  ncurses,
-  perl,
-  pkg-config,
-  python3,
   fontconfig,
   installShellFiles,
-  openssl,
   libGL,
   libX11,
   libxcb,
   libxkbcommon,
+  ncurses,
+  nixosTests,
+  openssl,
+  perl,
+  pkg-config,
+  python3,
+  runCommand,
+  rustPlatform,
+  unstableGitUpdater,
+  vulkan-loader,
+  wayland,
+  wezterm,
   xcbutil,
   xcbutilimage,
   xcbutilkeysyms,
   xcbutilwm,
-  wayland,
   zlib,
-  CoreGraphics,
-  Cocoa,
-  Foundation,
-  System,
-  libiconv,
-  UserNotifications,
-  nixosTests,
-  runCommand,
-  vulkan-loader,
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "wezterm";
-  version = "0-unstable-2025-01-03";
+  version = "0-unstable-2025-02-23";
 
   src = fetchFromGitHub {
     owner = "wez";
     repo = "wezterm";
-    rev = "8e9cf912e66f704f300fac6107206a75036de1e7";
+    rev = "4ff581a8aa3460d04f859fdadb50f29b3c507763";
     fetchSubmodules = true;
-    hash = "sha256-JkAovAeoVrH2QlHzzcciraebfsSQPBQPsA3fUKEjRm8=";
+    hash = "sha256-KKfGB1vM8ytpNieWD6CHD5zVyUe17tFAegZFzLx7QfE=";
   };
 
-  postPatch = ''
-    echo ${version} > .tag
+  postPatch =
+    ''
+      echo ${version} > .tag
 
-    # tests are failing with: Unable to exchange encryption keys
-    rm -r wezterm-ssh/tests
+      # hash does not work well with NixOS
+      substituteInPlace assets/shell-integration/wezterm.sh \
+        --replace-fail 'hash wezterm 2>/dev/null' 'command type -P wezterm &>/dev/null' \
+        --replace-fail 'hash base64 2>/dev/null' 'command type -P base64 &>/dev/null' \
+        --replace-fail 'hash hostname 2>/dev/null' 'command type -P hostname &>/dev/null' \
+        --replace-fail 'hash hostnamectl 2>/dev/null' 'command type -P hostnamectl &>/dev/null'
+    ''
+    + lib.optionalString stdenv.hostPlatform.isDarwin ''
+      # many tests fail with: No such file or directory
+      rm -r wezterm-ssh/tests
+    '';
 
-    # hash does not work well with NixOS
-    substituteInPlace assets/shell-integration/wezterm.sh \
-      --replace-fail 'hash wezterm 2>/dev/null' 'command type -P wezterm &>/dev/null' \
-      --replace-fail 'hash base64 2>/dev/null' 'command type -P base64 &>/dev/null' \
-      --replace-fail 'hash hostname 2>/dev/null' 'command type -P hostname &>/dev/null' \
-      --replace-fail 'hash hostnamectl 2>/dev/null' 'command type -P hostnamectl &>/dev/null'
-  '';
-
-  cargoHash = "sha256-UagPKPH/PRXk3EFe+rDbkSTSnHdi/Apz0Qek8YlNMxo=";
+  cargoHash = "sha256-WyQYmRNlabJaCTJm7Cn9nkXfOGAcOHwhoD9vmEggrDw=";
   useFetchCargoVendor = true;
 
   nativeBuildInputs = [
@@ -70,31 +68,21 @@ rustPlatform.buildRustPackage rec {
   buildInputs =
     [
       fontconfig
+      openssl
       zlib
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       libX11
       libxcb
       libxkbcommon
-      openssl
       wayland
       xcbutil
       xcbutilimage
       xcbutilkeysyms
       xcbutilwm # contains xcb-ewmh among others
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      Cocoa
-      CoreGraphics
-      Foundation
-      libiconv
-      System
-      UserNotifications
     ];
 
   buildFeatures = [ "distro-defaults" ];
-
-  env.NIX_LDFLAGS = lib.optionalString stdenv.hostPlatform.isDarwin "-framework System";
 
   postInstall = ''
     mkdir -p $out/nix-support
@@ -129,39 +117,15 @@ rustPlatform.buildRustPackage rec {
       ln -s $out/bin/{wezterm,wezterm-mux-server,wezterm-gui,strip-ansi-escapes} "$OUT_APP"
     '';
 
-  # tests broken in x86_64-darwin
-  doCheck = !(stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64);
-
   passthru = {
     # the headless variant is useful when deploying wezterm's mux server on remote severs
-    headless = rustPlatform.buildRustPackage {
-      pname = "${pname}-headless";
+    headless = import ./headless.nix {
       inherit
-        version
-        src
-        postPatch
-        cargoHash
-        useFetchCargoVendor
-        meta
+        openssl
+        pkg-config
+        rustPlatform
+        wezterm
         ;
-
-      nativeBuildInputs = [ pkg-config ];
-
-      buildInputs = [ openssl ];
-
-      cargoBuildFlags = [
-        "--package"
-        "wezterm"
-        "--package"
-        "wezterm-mux-server"
-      ];
-
-      doCheck = false;
-
-      postInstall = ''
-        install -Dm644 assets/shell-integration/wezterm.sh -t $out/etc/profile.d
-        install -Dm644 ${passthru.terminfo}/share/terminfo/w/wezterm -t $out/share/terminfo/w
-      '';
     };
 
     terminfo =
@@ -179,6 +143,11 @@ rustPlatform.buildRustPackage rec {
       # the test is commented out in nixos/tests/terminal-emulators.nix
       #terminal-emulators = nixosTests.terminal-emulators.wezterm;
     };
+
+    # upstream tags are composed with timestamp+commit, e.g.:
+    # 20240203-110809-5046fc22
+    # doesn't make much sense if we are following unstable
+    updateScript = unstableGitUpdater { hardcodeZeroVersion = true; };
   };
 
   meta = with lib; {
@@ -187,8 +156,9 @@ rustPlatform.buildRustPackage rec {
     license = licenses.mit;
     mainProgram = "wezterm";
     maintainers = with maintainers; [
-      SuperSandro2000
       mimame
+      SuperSandro2000
+      thiagokokada
     ];
   };
 }
