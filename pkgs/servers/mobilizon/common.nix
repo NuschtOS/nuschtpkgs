@@ -1,4 +1,8 @@
-{ applyPatches, fetchFromGitLab }:
+{
+  applyPatches,
+  fetchFromGitLab,
+  fetchpatch,
+}:
 rec {
 
   pname = "mobilizon";
@@ -15,6 +19,10 @@ rec {
 
     patches = [
       ./allow-ldap-login-with-username.diff
+      (fetchpatch {
+        url = "https://codeberg.org/rheinneckar.social/mobilizon/commit/269dcdbef41b87a9eb826c8856f0c05132a22148.patch";
+        hash = "sha256-a4BQ7DIxWeWoDdUBkmabbUiBO81Ct4taRpW7bpFB4Mw=";
+      })
     ];
   };
 }
