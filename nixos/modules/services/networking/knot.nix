@@ -210,14 +210,14 @@ let
     buildCommand = ''
       mkdir -p $out/bin
       makeWrapper ${cfg.package}/bin/knotc "$out/bin/knotc" \
-        --add-flags "--config=${configFile}" \
+        --add-flags "--config=/etc/knot/knot.conf" \
         --add-flags "--socket=${socketFile}"
       makeWrapper ${cfg.package}/bin/keymgr "$out/bin/keymgr" \
-        --add-flags "--config=${configFile}"
+        --add-flags "--config=/etc/knot/knot.conf"
       makeWrapper ${cfg.package}/bin/kzonesign "$out/bin/kzonesign" \
-        --add-flags "--config=${configFile}"
+        --add-flags "--config=/etc/knot/knot.conf"
       makeWrapper ${cfg.package}/bin/kcatalogprint "$out/bin/kcatalogprint" \
-        --add-flags "--config=${configFile}"
+        --add-flags "--config=/etc/knot/knot.conf"
       for executable in kdig khost kjournalprint knsec3hash knsupdate kzonecheck kxdpgun
       do
         ln -s "${cfg.package}/bin/$executable" "$out/bin/$executable"
@@ -350,7 +350,7 @@ in
           ExecStart = escapeSystemdExecArgs (
             [
               (lib.getExe cfg.package)
-              "--config=${configFile}"
+              "--config=/etc/knot/knot.conf"
               "--socket=${socketFile}"
             ]
             ++ cfg.extraArgs
