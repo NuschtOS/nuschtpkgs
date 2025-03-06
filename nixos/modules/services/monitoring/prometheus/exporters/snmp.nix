@@ -47,7 +47,7 @@ in
   port = 9116;
   extraOpts = {
     configurationPath = mkOption {
-      type = types.nullOr types.path;
+      type = types.nullOr types.str;
       default = null;
       description = ''
         Path to a snmp exporter configuration file. Mutually exclusive with 'configuration' option.
