@@ -147,6 +147,7 @@ in
   anbox = runTest ./anbox.nix;
   angie-api = handleTest ./angie-api.nix { };
   anki-sync-server = handleTest ./anki-sync-server.nix { };
+  anubis = runTest ./anubis.nix;
   anuko-time-tracker = handleTest ./anuko-time-tracker.nix { };
   apcupsd = handleTest ./apcupsd.nix { };
   anubis = runTest ./anubis.nix;
