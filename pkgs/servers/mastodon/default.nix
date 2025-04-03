@@ -64,6 +64,7 @@ stdenv.mkDerivation rec {
       mkdir -p ~/.yarn/berry
       ln -s $yarnOfflineCache ~/.yarn/berry/cache
 
+      export UV_USE_IO_URING=0
       yarn install --immutable --immutable-cache
 
       patchShebangs ~/bin
