@@ -7,6 +7,19 @@
 let
 
   cfg = config.services.postsrsd;
+  runtimeDirectoryName = "postsrsd";
+  runtimeDirectory = "/run/${runtimeDirectoryName}";
+  # <<< TODO: follow RFC 42, need a libconfuse format first >>>
+  configFile = pkgs.writeText "postsrsd.conf" ''
+    secrets-file = "''${CREDENTIALS_DIRECTORY}/secrets-file"
+    domains = { "${cfg.domain}" }
+    separator = "${cfg.separator}"
+    socketmap = "unix:${runtimeDirectory}/socket"
+
+    # Disable postsrsd's jailing in favor of confinement with systemd.
+    unprivileged-user = ""
+    chroot-dir = ""
+  '';
 
 in
 {
@@ -44,36 +57,6 @@ in
         description = "First separator character in generated addresses";
       };
 
-      # bindAddress = lib.mkOption { # uncomment once 1.5 is released
-      #   type = lib.types.str;
-      #   default = "127.0.0.1";
-      #   description = "Socket listen address";
-      # };
-
-      forwardPort = lib.mkOption {
-        type = lib.types.int;
-        default = 10001;
-        description = "Port for the forward SRS lookup";
-      };
-
-      reversePort = lib.mkOption {
-        type = lib.types.int;
-        default = 10002;
-        description = "Port for the reverse SRS lookup";
-      };
-
-      timeout = lib.mkOption {
-        type = lib.types.int;
-        default = 1800;
-        description = "Timeout for idle client connections in seconds";
-      };
-
-      excludeDomains = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        description = "Origin domains to exclude from rewriting in addition to primary domain";
-      };
-
       user = lib.mkOption {
         type = lib.types.str;
         default = "postsrsd";
@@ -107,29 +90,42 @@ in
       postsrsd.gid = config.ids.gids.postsrsd;
     };
 
-    systemd.services.postsrsd = {
-      description = "PostSRSd SRS rewriting server";
-      after = [ "network.target" ];
-      before = [ "postfix.service" ];
-      wantedBy = [ "multi-user.target" ];
-
+    systemd.services.postsrsd-generate-secrets = {
       path = [ pkgs.coreutils ];
-
-      serviceConfig = {
-        ExecStart = ''${pkgs.postsrsd}/sbin/postsrsd "-s${cfg.secretsFile}" "-d${cfg.domain}" -a${cfg.separator} -f${toString cfg.forwardPort} -r${toString cfg.reversePort} -t${toString cfg.timeout} "-X${lib.concatStringsSep "," cfg.excludeDomains}"'';
-        User = cfg.user;
-        Group = cfg.group;
-        PermissionsStartOnly = true;
-      };
-
-      preStart = ''
-        if [ ! -e "${cfg.secretsFile}" ]; then
+      script = ''
+        if [ -e "${cfg.secretsFile}" ]; then
+          echo "Secrets file exists. Nothing to do!"
+        else
           echo "WARNING: secrets file not found, autogenerating!"
           DIR="$(dirname "${cfg.secretsFile}")"
           install -m 750 -o ${cfg.user} -g ${cfg.group} -d "$DIR"
           install -m 600 -o ${cfg.user} -g ${cfg.group} <(dd if=/dev/random bs=18 count=1 | base64) "${cfg.secretsFile}"
         fi
       '';
+      serviceConfig = {
+        Type = "oneshot";
+      };
+    };
+
+    systemd.services.postsrsd = {
+      description = "PostSRSd SRS rewriting server";
+      after = [
+        "network.target"
+        "postsrsd-generate-secrets.service"
+      ];
+      before = [ "postfix.service" ];
+      wantedBy = [ "multi-user.target" ];
+      requires = [ "postsrsd-generate-secrets.service" ];
+      confinement.enable = true;
+
+      serviceConfig = {
+        ExecStart = "${lib.getExe pkgs.postsrsd} -C ${configFile}";
+        User = cfg.user;
+        Group = cfg.group;
+        PermissionsStartOnly = true;
+        RuntimeDirectory = runtimeDirectoryName;
+        LoadCredential = "secrets-file:${cfg.secretsFile}";
+      };
     };
 
   };
