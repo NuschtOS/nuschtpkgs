@@ -82,6 +82,7 @@ let
         "knot"
         "lnd"
         "mail"
+        "mailman3"
         "mikrotik"
         "modemmanager"
         "mongodb"
