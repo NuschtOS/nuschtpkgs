@@ -12,7 +12,7 @@ let
   # <<< TODO: follow RFC 42, need a libconfuse format first >>>
   configFile = pkgs.writeText "postsrsd.conf" ''
     secrets-file = "''${CREDENTIALS_DIRECTORY}/secrets-file"
-    domains = { "${cfg.domain}" }
+    domains = { ${lib.concatStringsSep ", " (map (x: ''"${x}"'') cfg.domains)} }
     separator = "${cfg.separator}"
     socketmap = "unix:${runtimeDirectory}/socket"
 
@@ -42,9 +42,9 @@ in
         description = "Secret keys used for signing and verification";
       };
 
-      domain = lib.mkOption {
-        type = lib.types.str;
-        description = "Domain name for rewrite";
+      domains = lib.mkOption {
+        type = with lib.types; listOf str;
+        description = "Local domain names that not need to be rewritten.";
       };
 
       separator = lib.mkOption {
@@ -77,7 +77,7 @@ in
 
   config = lib.mkIf cfg.enable {
 
-    services.postsrsd.domain = lib.mkDefault config.networking.hostName;
+    services.postsrsd.domains = lib.mkDefault [ config.networking.hostName ];
 
     users.users = lib.optionalAttrs (cfg.user == "postsrsd") {
       postsrsd = {
