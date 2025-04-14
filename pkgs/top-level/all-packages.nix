@@ -7566,6 +7566,10 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) CoreFoundation Security SystemConfiguration;
     llvm_19 = llvmPackages_19.libllvm;
   };
+  rust_1_86 = callPackage ../development/compilers/rust/1_86.nix {
+    inherit (darwin.apple_sdk.frameworks) CoreFoundation Security SystemConfiguration;
+    llvm_19 = llvmPackages_19.libllvm;
+  };
   rust = rust_1_82;
 
   mrustc = callPackage ../development/compilers/mrustc { };
@@ -7576,6 +7580,7 @@ with pkgs;
 
   rustPackages_1_82 = rust_1_82.packages.stable;
   rustPackages_1_83 = rust_1_83.packages.stable;
+  rustPackages_1_86 = rust_1_86.packages.stable;
   rustPackages = rustPackages_1_82;
 
   inherit (rustPackages)
