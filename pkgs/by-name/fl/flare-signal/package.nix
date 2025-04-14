@@ -12,14 +12,16 @@
   libsecret,
   libadwaita,
   gtksourceview5,
-  rustPlatform,
-  rustc,
+  rustPackages_1_86,
   appstream-glib,
   blueprint-compiler,
   desktop-file-utils,
   wrapGAppsHook4,
 }:
 
+let
+  inherit (rustPackages_1_86) rustPlatform rustc;
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "flare";
   version = "0.15.16";
