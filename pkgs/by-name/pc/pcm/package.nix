@@ -5,15 +5,16 @@
   stdenv,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "pcm";
-  version = "202502";
+  version = "unstable-2025-04-21";
 
   src = fetchFromGitHub {
-    owner = "intel";
+    owner = "marenz2569";
     repo = "pcm";
-    rev = version;
-    hash = "sha256-U6V3LX+JlVL9MRFBP3xpYwPQ6Y7pnJ4F/7dpKG3Eyuw=";
+    # beanch: marenz.pcm_sensor_server_bind_ip
+    rev = "6d2d67dcc11610ffafe4b2a375f6d5558e29ae22";
+    hash = "sha256-xX89eaWE8sKRtYnd3vbor0uV4VLgzVGa4M8iOPxyBF4=";
   };
 
   nativeBuildInputs = [ cmake ];

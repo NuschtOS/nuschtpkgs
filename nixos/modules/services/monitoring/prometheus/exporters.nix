@@ -104,6 +104,7 @@ let
         "php-fpm"
         "pihole"
         "ping"
+        "pcm"
         "postfix"
         "postgres"
         "process"
@@ -189,7 +190,7 @@ let
     );
 
   mkExporterOpts = (
-    { name, port }:
+    { name, port, listenAddress, user }:
     {
       enable = mkEnableOption "the prometheus ${name} exporter";
       port = mkOption {
@@ -201,7 +202,7 @@ let
       };
       listenAddress = mkOption {
         type = types.str;
-        default = "0.0.0.0";
+        default = listenAddress;
         description = ''
           Address to listen on.
         '';
@@ -245,7 +246,7 @@ let
       };
       user = mkOption {
         type = types.str;
-        default = "${name}-exporter";
+        default = user;
         description = ''
           User name under which the ${name} exporter shall be run.
         '';
@@ -264,6 +265,8 @@ let
     {
       name,
       port,
+      listenAddress,
+      user,
       extraOpts,
       imports,
     }:
@@ -274,7 +277,7 @@ let
             inherit imports;
             options = (
               mkExporterOpts {
-                inherit name port;
+                inherit name port listenAddress user;
               }
               // extraOpts
             );
@@ -299,6 +302,8 @@ let
         mkSubModule {
           inherit name;
           inherit (opts) port;
+          listenAddress = opts.listenAddress or "0.0.0.0";
+          user = opts.user or "${name}-exporter";
           extraOpts = opts.extraOpts or { };
           imports = opts.imports or [ ];
         }
