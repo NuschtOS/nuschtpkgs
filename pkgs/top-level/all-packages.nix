@@ -13139,6 +13139,11 @@ with pkgs;
     systemd = systemdMinimal; # in closure already anyway
   };
 
+  knot-resolver_6 = callPackage ../servers/dns/knot-resolver_6 {
+    systemd = systemdMinimal; # in closure already anyway
+  };
+  knot-resolver-manager = callPackage ../servers/dns/knot-resolver_6/manager.nix { };
+
   leafnode = callPackage ../servers/news/leafnode { };
 
   leafnode1 = callPackage ../servers/news/leafnode/1.nix { };
