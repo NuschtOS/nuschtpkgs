@@ -1191,6 +1191,7 @@
   ./services/networking/kismet.nix
   ./services/networking/knot.nix
   ./services/networking/kresd.nix
+  ./services/networking/kresd_6.nix
   ./services/networking/lambdabot.nix
   ./services/networking/legit.nix
   ./services/networking/libreswan.nix
