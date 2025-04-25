@@ -171,18 +171,20 @@ in
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = [ (pkgs.runCommand "gancio" { } ''
-      mkdir -p $out/bin
-      echo '#!${pkgs.runtimeShell}
-      cd /var/lib/gancio/
-      sudo=exec
-      if [[ "$USER" != ${cfg.user} ]]; then
-        sudo="exec /run/wrappers/bin/sudo -u ${cfg.user}"
-      fi
-      $sudo ${lib.getExe cfg.package} ''${@:--help}
-      ' > $out/bin/gancio
-      chmod +x $out/bin/gancio
-    '') ];
+    environment.systemPackages = [
+      (pkgs.runCommand "gancio" { } ''
+        mkdir -p $out/bin
+        echo '#!${pkgs.runtimeShell}
+        cd /var/lib/gancio/
+        sudo=exec
+        if [[ "$USER" != ${cfg.user} ]]; then
+          sudo="exec /run/wrappers/bin/sudo -u ${cfg.user}"
+        fi
+        $sudo ${lib.getExe cfg.package} "''${@:--help}"
+        ' > $out/bin/gancio
+        chmod +x $out/bin/gancio
+      '')
+    ];
 
     users.users.gancio = lib.mkIf (cfg.user == "gancio") {
       isSystemUser = true;
