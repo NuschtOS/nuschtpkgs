@@ -4,6 +4,7 @@
   withPrometheusExporter ? true,
   sslLibrary ? "quictls",
   stdenv,
+  aws-lc,
   lib,
   fetchurl,
   nixosTests,
@@ -18,6 +19,7 @@
 }:
 
 assert lib.assertOneOf "sslLibrary" sslLibrary [
+  "aws-lc"
   "quictls"
   "openssl"
   "libressl"
@@ -25,7 +27,7 @@ assert lib.assertOneOf "sslLibrary" sslLibrary [
 ];
 let
   sslPkgs = {
-    inherit quictls openssl libressl;
+    inherit aws-lc quictls openssl libressl;
     wolfssl = wolfssl.override {
       variant = "haproxy";
       extraConfigureFlags = [ "--enable-quic" ];
