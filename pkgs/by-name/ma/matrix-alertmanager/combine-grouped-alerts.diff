@@ -1,0 +1,14 @@
+diff --git a/src/routes.js b/src/routes.js
+index 83935ca..f47b68d 100644
+--- a/src/routes.js
++++ b/src/routes.js
+@@ -25,8 +25,7 @@ const routes = {
+         }
+ 
+         try {
+-            const promises = alerts.map(alert => client.sendAlert(roomId, alert))
+-            await Promise.all(promises)
++            await client.sendAlert(roomId, alerts.join('<br>'))
+             res.json({'result': 'ok'})
+         } catch (e) {
+             // eslint-disable-next-line no-console
