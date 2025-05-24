@@ -2,6 +2,7 @@
   lib,
   buildNpmPackage,
   fetchFromGitHub,
+  fetchpatch,
   jq,
 }:
 
@@ -15,6 +16,17 @@ buildNpmPackage rec {
     rev = "v${version}";
     hash = "sha256-GwASazYgZTYrMn696VL+JKEjECoCKxr2VWj2zae8U/E=";
   };
+
+  patches = [
+    ./shorter-retry.diff
+    # Fix DoS when a request is made without auth header
+    # https://github.com/jaywink/matrix-alertmanager/pull/48
+    (fetchpatch {
+      url = "https://github.com/jaywink/matrix-alertmanager/pull/48.patch";
+      hash = "sha256-7dy8nIF3xZY/ByFJaR/r3BlkGMg1unwKp1Nf0w9RmRA=";
+    })
+    ./combine-grouped-alerts.diff
+  ];
 
   postPatch = ''
     ${lib.getExe jq} '. += {"bin": "src/app.js"}' package.json > package.json.tmp
