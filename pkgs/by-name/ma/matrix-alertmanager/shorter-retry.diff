@@ -1,0 +1,13 @@
+diff --git a/src/client.js b/src/client.js
+index e0ad973..bd88bdb 100644
+--- a/src/client.js
++++ b/src/client.js
+@@ -16,7 +16,7 @@ const client = {
+ 
+         // Calculate the delay using exponential back-off, starting from 1 second (1000 ms).
+         // 2 ** retryCount will double the wait time with each failure.
+-        const delay = Math.min((2 ** roomRetryInfo[roomId].retryCount) * 1000, 60000); // Cap delay at 60 seconds.
++        const delay = Math.min((2 ** roomRetryInfo[roomId].retryCount) * 1000, 6000); // Cap delay at 6 seconds.
+ 
+         if (timeSinceLastAttempt < delay) {
+             return;
