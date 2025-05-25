@@ -52,6 +52,7 @@ let
           "server"
           "xdp"
           "control"
+          "dnskey-sync"
           "log"
           "statistics"
           "database"
@@ -100,6 +101,7 @@ let
             "remote"
             "remotes"
             "acl"
+            "dnskey-sync"
             "submission"
             "policy"
           ]
