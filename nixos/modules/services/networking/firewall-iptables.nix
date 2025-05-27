@@ -332,6 +332,18 @@ in
         assertion = cfg.checkReversePath == false || kernelHasRPFilter;
         message = "This kernel does not support rpfilter";
       }
+      {
+        assertion = config.networking.firewall.extraInputRules == "";
+        message = "extraInputRules is incompatible with the nftables based firewall: ${cfg.extraInputRules}";
+      }
+      {
+        assertion = config.networking.firewall.extraForwardRules == "";
+        message = "extraForwardRules is incompatible with the nftables based firewall: ${cfg.extraForwardRules}";
+      }
+      {
+        assertion = config.networking.firewall.extraReversePathFilterRules == "";
+        message = "extraReversePathFilterRules is incompatible with the nftables based firewall: ${cfg.extraReversePathFilterRules}";
+      }
     ];
 
     networking.firewall.checkReversePath = lib.mkIf (!kernelHasRPFilter) (lib.mkDefault false);
