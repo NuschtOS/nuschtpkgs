@@ -36,7 +36,7 @@ let # un-indented, over the whole file
 
   unwrapped = stdenv.mkDerivation rec {
     pname = "knot-resolver";
-    version = "6.0.12";
+    version = "6.0.14";
 
     src = fetchFromGitLab {
       domain = "gitlab.nic.cz";
@@ -44,7 +44,7 @@ let # un-indented, over the whole file
       repo = "knot-resolver";
       fetchSubmodules = true;
       tag = "v${version}";
-      hash = "sha256-T+1AMQwfQ59LgSc0r+//H9KLqxKGzuhP0j4gjl+Izvs=";
+      hash = "sha256-Ip02dIBj/bPb2qbRxaLnYTlmHeX/BnYteZYPYyB/yjE=";
     };
 
     outputs = [
