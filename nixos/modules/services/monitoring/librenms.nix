@@ -227,8 +227,10 @@ in
         generators.toPretty { } (
           defaultPHPSettings // {
             "zend_extension" = lib.literalExpression "opcache";
-            "opcache.enable" = lib.literalExpression 1;
-            "opcache.memory_consumption" = lib.literalExpression 256;
+            "opcache.enable" = lib.literalExpression "1";
+            "opcache.memory_consumption" = lib.literalExpression "256";
+            "date.timezone" = lib.literalExpression "config.time.timeZone";
+            memory_limit = lib.literalExpression "\${toString cfg.settings.php_memory_limit}M";
           }
         )
       );
