@@ -2,6 +2,7 @@
   lib,
   buildGoModule,
   fetchFromGitHub,
+  fetchpatch,
   libxcrypt,
   nixosTests,
 }:
@@ -16,6 +17,14 @@ buildGoModule rec {
     rev = "v${version}";
     sha256 = "sha256-xZb2+IIZkZd/yGr0+FK7Bi3sZpPMfGz/QmUKn/clrwE=";
   };
+
+  patches = [
+    # Fix missing origin header
+    (fetchpatch {
+      url = "https://github.com/majewsky/portunus/commit/5a71a6311458968b31a38e67642bc9a5176f1099.patch";
+      hash = "sha256-xQAMn1k581vbOfAumBa/YtpQhcIrNLRgv0zmxEwOyn0=";
+    })
+  ];
 
   buildInputs = [ libxcrypt ];
 
