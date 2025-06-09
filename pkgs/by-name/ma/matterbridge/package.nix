@@ -4,15 +4,15 @@
   fetchFromGitHub,
 }:
 
-buildGoModule {
+buildGoModule rec {
   pname = "matterbridge";
-  version = "1.26.0-unstable-2024-08-27";
+  version = "1.26.2";
 
   src = fetchFromGitHub {
-    owner = "42wim";
+    owner = "bibanon";
     repo = "matterbridge";
-    rev = "c4157a4d5b49fce79c80a30730dc7c404bacd663";
-    hash = "sha256-ZnNVDlrkZd/I0NWmQMZzJ3RIruH0ARoVKJ4EyYVdMiw=";
+    tag = "v${version}";
+    hash = "sha256-7F0cAdnxUt2to+zhf/gtobbvPX1NnSpsLKbxy059CB0=";
   };
 
   subPackages = [ "." ];
@@ -21,9 +21,9 @@ buildGoModule {
 
   meta = {
     description = "Simple bridge between Mattermost, IRC, XMPP, Gitter, Slack, Discord, Telegram, Rocket.Chat, Hipchat(via xmpp), Matrix and Steam";
-    homepage = "https://github.com/42wim/matterbridge";
+    homepage = "https://github.com/bibanon/matterbridge/";
     license = with lib.licenses; [ asl20 ];
-    maintainers = with lib.maintainers; [ ryantm ];
+    maintainers = with lib.maintainers; [ SuperSandro2000 ];
     mainProgram = "matterbridge";
   };
 }
