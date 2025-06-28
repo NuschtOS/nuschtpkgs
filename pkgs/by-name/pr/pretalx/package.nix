@@ -92,7 +92,7 @@ python.pkgs.buildPythonApplication rec {
     "beautifulsoup4"
     "bleach"
     "celery"
-    "css-inline"
+    "css_inline"
     "cssutils"
     "defusedxml"
     "django-compressor"
