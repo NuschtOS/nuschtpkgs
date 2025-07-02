@@ -7,10 +7,6 @@ This is a [Nixpkgs](https://github.com/NixOS/nixpkgs) fork where we manualy back
 | nixos-unstable | nixos-unstable | Includes backports required for running NixOS-Modules. |
 | nixos-25.05 | nixos-25.05 | Includes backports required for running NixOS-Modules. |
 | backports-25.05 | nixos-25.05 | Includes backports that are *relevant to us*. Not intendet for outside use. |
-| nixos-24.11 | nixos-24.11 | Includes backports required for running NixOS-Modules. |
-| backports-24.11 | nixos-24.11 | Includes backports that are *relevant to us*. Not intendet for outside use. |
-| nixos-24.05 | nixos-24.05 | Includes backports required for running NixOS-Modules. |
-| backports-24.05 | nixos-24.05 | Includes backports that are *relevant to us*. Not intendet for outside use. |
 
 ## Contact
 
