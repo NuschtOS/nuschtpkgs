@@ -246,7 +246,7 @@ in
         ];
       };
 
-      users.users.postfix.extraGroups = [ cfg.groups ];
+      users.users.postfix.extraGroups = [ cfg.group ];
     })
 
     (lib.mkIf cfg.enable {
