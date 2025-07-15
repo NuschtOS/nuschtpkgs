@@ -4,7 +4,7 @@
   symlinkJoin,
   lib,
   fetchFromGitHub,
-  autoreconfHook,
+  autoreconfHook269,
   pkg-config,
   bash,
   coreutils,
@@ -64,7 +64,7 @@ let
     ++ optionals withKeyring [ libsecret ];
 
     nativeBuildInputs = [
-      autoreconfHook
+      autoreconfHook269
       pkg-config
       texinfo
     ];
