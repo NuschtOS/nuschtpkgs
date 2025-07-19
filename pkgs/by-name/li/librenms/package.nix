@@ -28,37 +28,16 @@ let
 in
 phpPackage.buildComposerProject2 rec {
   pname = "librenms";
-  version = "25.6.0";
+  version = "25.7.0";
 
   src = fetchFromGitHub {
     owner = "librenms";
     repo = pname;
     tag = version;
-    sha256 = "sha256-8LL0D1vIThjZ5RBIQ6INAuXz0bbhOBEZMFYhv3OX1c8=";
+    sha256 = "sha256-YXSzHqMJwqEYP1c6hLT7t9CyOJ2GZMELoqGQf2GSjdA=";
   };
 
-  vendorHash = "sha256-9ndmr1cs6+p2EThs8UQkNsSFHd/1wxbPOgw2rX5ZivU=";
-
-  patches = [
-    (fetchpatch {
-      # https://github.com/advisories/GHSA-gq96-8w38-hhj2
-      name = "CVE-2025-54138.patch";
-      url = "https://github.com/librenms/librenms/commit/ec89714d929ef0cf2321957ed9198b0f18396c81.patch";
-      hash = "sha256-UJy0AZXpvowvjSnJy7m4Z5JPoYWjydUg1R+jz/Pl1s0=";
-    })
-    (fetchpatch {
-      # https://github.com/advisories/GHSA-frc6-pwgr-c28w
-      name = "CVE-2025-62411.patch";
-      url = "https://github.com/librenms/librenms/commit/706a77085f4d5964f7de9444208ef707e1f79450.patch";
-      hash = "sha256-egltEZEg8yn+JCe/rlpxMuVMBbRgruIwR5y9aNwjrGg=";
-    })
-    (fetchpatch {
-      # https://github.com/advisories/GHSA-6g2v-66ch-6xmh
-      name = "CVE-2025-62412.patch";
-      url = "https://github.com/librenms/librenms/commit/d9ec1d500b71b5ad268c71c0d1fde323da70c694.patch";
-      hash = "sha256-DIE92KEegRoZNGSEr5VcbG0NQXNZbaKi0DeIBAyn608=";
-    })
-  ];
+  vendorHash = "sha256-YlGT326Yp8A6rR4LHaczrNu5SOgQBUA11WBpJhHNhvg=";
 
   php = phpPackage;
 
