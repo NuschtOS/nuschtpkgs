@@ -47,6 +47,12 @@ in
     package = lib.mkPackageOption pkgs "hedgedoc" { };
     enable = lib.mkEnableOption "the HedgeDoc Markdown Editor";
 
+    configureNginx = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Whether to configure nginx as a reverse proxy.";
+    };
+
     settings = mkOption {
       type = types.submodule {
         freeformType = settingsFormat.type;
@@ -249,10 +255,28 @@ in
       isSystemUser = true;
     };
 
-    services.hedgedoc.settings = {
-      defaultNotePath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/default.md";
-      docsPath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/docs";
-      viewPath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/views";
+    services = {
+      hedgedoc.settings = {
+        defaultNotePath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/default.md";
+        docsPath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/docs";
+        viewPath = lib.mkDefault "${cfg.package}/share/hedgedoc/public/views";
+      };
+
+      nginx = {
+        enable = true;
+        upstreams.hedgedoc.servers."unix:${config.services.hedgedoc.settings.path}" = { };
+        virtualHosts."${cfg.settings.domain}" = {
+          enableACME = true;
+          forceSSL = true;
+          locations = {
+            "/".proxyPass = "http://hedgedoc";
+            "/socket.io/" = {
+              proxyPass = "http://hedgedoc";
+              proxyWebsockets = true;
+            };
+          };
+        };
+      };
     };
 
     systemd.services.hedgedoc = {
