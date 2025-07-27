@@ -42,7 +42,7 @@ let
     # - then validate it, so that most errors get found during OS build (not activation)
     json = pkgs.runCommandLocal "kresd.json" {} ''
       '${pkgs.jq}/bin/jq' < '${json-oneline}' > "$out"
-      '${manager}/bin/kresctl' validate --no-strict "$out"
+      '${manager}/bin/kresctl' validate "$out"
     '';
     #*/
 
@@ -57,7 +57,7 @@ let
     # )
     # else
     pkgs.runCommandLocal "kresd.lua" {} ''
-      ${manager}/bin/kresctl convert --no-strict '${json}' "$out"
+      ${manager}/bin/kresctl convert '${json}' "$out"
     '';
 in
 {

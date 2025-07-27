@@ -20,7 +20,7 @@
   dns-root-data,
   nghttp2, # optionals, in principle
   fstrm,
-  protobufc, # more optionals
+  grpc-tools, # more optionals
   # test-only deps.
   cmocka,
   which,
@@ -36,7 +36,7 @@ let # un-indented, over the whole file
 
   unwrapped = stdenv.mkDerivation rec {
     pname = "knot-resolver";
-    version = "6.0.14";
+    version = "6.0.15";
 
     src = fetchFromGitLab {
       domain = "gitlab.nic.cz";
@@ -44,7 +44,7 @@ let # un-indented, over the whole file
       repo = "knot-resolver";
       fetchSubmodules = true;
       tag = "v${version}";
-      hash = "sha256-Ip02dIBj/bPb2qbRxaLnYTlmHeX/BnYteZYPYyB/yjE=";
+      hash = "sha256-419uTttRR7FPRRWDb55p9nrTy9Bl9LhTCAZcy9lLAcs=";
     };
 
     outputs = [
@@ -103,7 +103,7 @@ let # un-indented, over the whole file
       ]
       ++ [
         fstrm
-        protobufc
+        grpc-tools
       ] # dnstap support
     ;
 
