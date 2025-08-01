@@ -374,6 +374,11 @@ let
         default = false;
         description = "Allow rooms to be moderated";
       };
+      offline_delivery = mkOption {
+        type = types.bool;
+        default = false;
+        description = "This module implements support for sending messages in a MUC to affiliated users who are not in the room.";
+      };
 
       # Extra parameters. Defaulting to prosody default values.
       # Adding them explicitly to make them visible from the options
@@ -572,7 +577,7 @@ let
 
       ${lib.concatMapStrings (muc: ''
         Component ${toLua muc.domain} "muc"
-            modules_enabled = {${optionalString cfg.modules.mam '' "muc_mam",''}${optionalString muc.allowners_muc '' "muc_allowners",''}${optionalString muc.moderation '' "muc_moderation",''} }
+            modules_enabled = {${optionalString cfg.modules.mam '' "muc_mam",''}${optionalString muc.allowners_muc '' "muc_allowners",''}${optionalString muc.moderation '' "muc_moderation",''}${optionalString muc.offline_delivery '' "muc_offline_delivery",''} }
             name = ${toLua muc.name}
             restrict_room_creation = ${toLua muc.restrictRoomCreation}
             max_history_messages = ${toLua muc.maxHistoryMessages}
