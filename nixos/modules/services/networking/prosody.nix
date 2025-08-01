@@ -921,6 +921,9 @@ in
 
     environment.systemPackages = [ cfg.package ];
 
+    # prevent error if not all certs are configured by the user
+    environment.etc."prosody/certs/.dummy".text = "";
+
     environment.etc."prosody/prosody.cfg.lua".source =
       if cfg.checkConfig then
         pkgs.runCommandLocal "prosody.cfg.lua-checked"
