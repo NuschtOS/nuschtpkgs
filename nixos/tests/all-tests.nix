@@ -636,6 +636,7 @@ in
   i3wm = handleTest ./i3wm.nix { };
   icingaweb2 = runTest ./icingaweb2.nix;
   ifm = handleTest ./ifm.nix { };
+  ifstate = import ./ifstate { inherit runTest; };
   iftop = handleTest ./iftop.nix { };
   image-contents = handleTest ./image-contents.nix { };
   immich = handleTest ./web-apps/immich.nix { };
