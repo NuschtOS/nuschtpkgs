@@ -2046,7 +2046,7 @@ in
         set -o errexit -o pipefail -o nounset -o errtrace
         shopt -s inherit_errexit
 
-        exec ${cfg.package}/bin/grafana server -homepath ${cfg.dataDir} -config ${configFile}
+        exec ${cfg.package}/bin/grafana server -homepath ${cfg.dataDir} -config ${cfg.dataDir}/config.ini
       '';
       serviceConfig = {
         WorkingDirectory = cfg.dataDir;
@@ -2094,6 +2094,7 @@ in
       preStart = ''
         ln -fs ${cfg.package}/share/grafana/conf ${cfg.dataDir}
         ln -fs ${cfg.package}/share/grafana/tools ${cfg.dataDir}
+        ln -fs ${configFile} ${cfg.dataDir}/config.ini
       '';
     };
 
