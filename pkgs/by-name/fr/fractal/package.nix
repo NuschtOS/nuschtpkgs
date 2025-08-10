@@ -3,11 +3,9 @@
   lib,
   fetchFromGitLab,
   nix-update-script,
-  cargo,
   meson,
   ninja,
-  rustPlatform,
-  rustc,
+  rustPackages_1_88,
   pkg-config,
   glib,
   grass-sass,
@@ -28,21 +26,28 @@
   glycin-loaders,
 }:
 
+let
+  inherit (rustPackages_1_88)
+    cargo
+    rustPlatform
+    rustc
+    ;
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "fractal";
-  version = "11.2";
+  version = "12";
 
   src = fetchFromGitLab {
     domain = "gitlab.gnome.org";
     owner = "World";
     repo = "fractal";
     tag = finalAttrs.version;
-    hash = "sha256-UE0TRC9DeP+fl85fzuQ8/3ioIPdeSqsJWnW1olB1gmo=";
+    hash = "sha256-galaFpHcWrN+jQ6uOS78EB6wjfR8KIBLZvKmH7Rb1Xs=";
   };
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     inherit (finalAttrs) src;
-    hash = "sha256-I+1pGZWxn9Q/CL8D6VxsaO3H4EdBek4wyykvNgCNRZI=";
+    hash = "sha256-DuEuCvhwulDHVCmUPXcM6PZ34nueRmKYHYffSsFCbLE=";
   };
 
   patches = [
