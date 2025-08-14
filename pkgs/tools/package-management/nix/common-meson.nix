@@ -226,7 +226,7 @@ stdenv.mkDerivation (finalAttrs: {
       export MANPATH=$man/share/man:$MANPATH
     '';
 
-  separateDebugInfo = stdenv.hostPlatform.isLinux && enableStatic;
+  separateDebugInfo = stdenv.hostPlatform.isLinux && !enableStatic;
 
   passthru = {
     inherit aws-sdk-cpp boehmgc;
