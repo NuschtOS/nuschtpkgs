@@ -46,7 +46,7 @@ let
     "-u"
     "chrony"
     "-f"
-    "${configFile}"
+    "/etc/chrony/chrony.conf"
   ]
   ++ lib.optional cfg.enableMemoryLocking "-m"
   ++ cfg.extraFlags;
@@ -244,7 +244,10 @@ in
   ];
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ chronyPkg ];
+    environment = {
+      etc."chrony/chrony.conf".source = configFile;
+      systemPackages = [ chronyPkg ];
+    };
 
     users.groups.chrony.gid = config.ids.gids.chrony;
 
