@@ -451,7 +451,7 @@ in
       ];
     };
     phpPackage = mkPackageOption pkgs "php" {
-      default = [ "php83" ];
+      default = [ "php84" ];
       example = "php82";
     };
 
