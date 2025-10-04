@@ -153,7 +153,7 @@ in
         realm = ${cfg.realm}
         domain = ${cfg.domain}
         server = ${cfg.server}
-        host = ${config.networking.hostName}
+        host = ${cfg.ipaHostname}
         xmlrpc_uri = https://${cfg.server}/ipa/xml
         enable_ra = True
       '';
