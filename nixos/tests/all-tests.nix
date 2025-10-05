@@ -1255,8 +1255,8 @@ in
   ssh-agent-auth = handleTest ./ssh-agent-auth.nix { };
   ssh-audit = handleTest ./ssh-audit.nix { };
   sslh = handleTest ./sslh.nix { };
-  sssd = handleTestOn [ "x86_64-linux" "aarch64-linux" ] ./sssd.nix { };
   sssd-ldap = handleTestOn [ "x86_64-linux" "aarch64-linux" ] ./sssd-ldap.nix { };
+  sssd-legacy-config = handleTestOn [ "x86_64-linux" "aarch64-linux" ] ./sssd-legacy-config.nix { };
   stalwart-mail = handleTest ./stalwart-mail.nix { };
   stargazer = runTest ./web-servers/stargazer.nix;
   starship = runTest ./starship.nix;
