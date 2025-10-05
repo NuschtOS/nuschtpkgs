@@ -36,6 +36,7 @@ in
         default = { };
         example = {
           sssd = {
+            config_file_version = 2;
             services = "nss, pam";
             domains = "shadowutils";
           };
@@ -138,6 +139,10 @@ in
         {
           assertion = cfg.settings != { } || cfg.config != "";
           message = "Either services.sssd.settings or services.sssd.config is required.";
+        }
+        {
+          assertion = config.services.sssd.sudoIntegration -> !config.security.sudo.execWheelOnly;
+          message = "`security.sudo.execWheelOnly` and `services.sssd.sudoIntegration` are mutably exclusive.";
         }
       ];
 
