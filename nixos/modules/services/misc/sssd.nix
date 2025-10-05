@@ -36,6 +36,7 @@ in
         default = { };
         example = {
           sssd = {
+            config_file_version = 2;
             services = "nss, pam";
             domains = "shadowutils";
           };
@@ -141,6 +142,10 @@ in
         {
           assertion = lib.xor (cfg.settings != { }) (cfg.config != "");
           message = "services.sssd.settings and services.sssd.config are mutually exclusive";
+        }
+        {
+          assertion = config.services.sssd.sudoIntegration -> !config.security.sudo.execWheelOnly;
+          message = "`security.sudo.execWheelOnly` and `services.sssd.sudoIntegration` are mutably exclusive.";
         }
       ];
 
