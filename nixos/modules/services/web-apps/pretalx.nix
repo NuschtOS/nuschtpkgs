@@ -439,14 +439,16 @@ in
             "mysql.service"
           ];
           wantedBy = [ "multi-user.target" ];
-          preStart = ''
+          preStart = let
+            versionString = lib.concatStringsSep "-" ([ cfg.package.version ] ++ map (p: p.version) cfg.plugins);
+          in ''
             versionFile="${cfg.settings.filesystem.data}/.version"
-            version=$(cat "$versionFile" 2>/dev/null || echo 0)
+            version="$(cat "$versionFile" 2>/dev/null || echo 0)"
 
-            if [[ $version != ${cfg.package.version} ]]; then
+            if [[ $version != ${versionString} ]]; then
               ${lib.getExe' pythonEnv "pretalx-manage"} migrate
 
-              echo "${cfg.package.version}" > "$versionFile"
+              echo "${versionString}" > "$versionFile"
             fi
           '';
           serviceConfig = {
