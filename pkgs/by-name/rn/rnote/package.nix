@@ -5,7 +5,6 @@
   alsa-lib,
   appstream,
   appstream-glib,
-  cargo,
   cmake,
   desktop-file-utils,
   dos2unix,
@@ -19,12 +18,14 @@
   pkg-config,
   poppler,
   python3,
-  rustPlatform,
-  rustc,
+  rustPackages_1_89,
   shared-mime-info,
   wrapGAppsHook4,
 }:
 
+let
+  inherit (rustPackages_1_89) rustPlatform cargo rustc;
+in
 stdenv.mkDerivation rec {
   pname = "rnote";
   version = "0.13.1";
