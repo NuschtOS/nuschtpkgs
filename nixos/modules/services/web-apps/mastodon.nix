@@ -919,6 +919,12 @@ in
               ));
             message = "There must be exactly one Sidekiq queue in services.mastodon.sidekiqProcesses with jobClass \"scheduler\".";
           }
+          {
+            assertion =
+              databaseActuallyCreateLocally
+              -> lib.versionAtLeast config.services.postgresql.finalPackage.version "14";
+            message = "Mastodon requires at least PostgreSQL 14.";
+          }
         ]
         ++ (map (secret: {
           assertion = !cfg.settings ? secret;
