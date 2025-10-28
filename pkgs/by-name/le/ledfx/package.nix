@@ -1,17 +1,19 @@
 {
   lib,
-  fetchPypi,
+  fetchFromGitHub,
   python3,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "ledfx";
-  version = "2.0.108";
+  version = "2.1.0";
   pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-wfp6u2YIliufjkaLBlLVFw2/dqpHYFAfcow4iyOB2ME=";
+  src = fetchFromGitHub {
+    owner = "LedFx";
+    repo = "LedFx";
+    tag = "v2.1.0";
+    hash = "sha256-N9EHK0GVohFCjEKsm3g4h+4XWfzZO1tzdd2z5IN1YjI=";
   };
 
   pythonRelaxDeps = true;
