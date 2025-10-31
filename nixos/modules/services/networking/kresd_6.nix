@@ -57,7 +57,7 @@ let
     # )
     # else
     pkgs.runCommandLocal "kresd.lua" { } ''
-      ${manager}/bin/kresctl convert '${json}' "$out"
+      ${manager}/bin/kresctl convert '${json}' -o "$out"
     '';
 in
 {
