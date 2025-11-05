@@ -17,20 +17,22 @@
   sqlite,
   systemd,
   testers,
+  glib,
 
   # Boolean flags
   withSystemd ? lib.meta.availableOn stdenv.hostPlatform systemd,
+  withDisplayManager ? true,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "onedrive";
-  version = "2.5.7";
+  version = "2.5.9";
 
   src = fetchFromGitHub {
     owner = "abraunegg";
     repo = "onedrive";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-IllPh4YJvoAAyXDmSNwWDHN/EUtUuUqS7TOnBpr3Yts=";
+    hash = "sha256-Vrr7KR4yMH+IZ56IUTp9eAhxEtiXx+ppleUd7jSLzxc=";
   };
 
   outputs = [
@@ -52,7 +54,8 @@ stdenv.mkDerivation (finalAttrs: {
     libnotify
     sqlite
   ]
-  ++ lib.optionals withSystemd [ systemd ];
+  ++ lib.optionals withSystemd [ systemd ]
+  ++ lib.optionals withDisplayManager [ glib ];
 
   configureFlags = [
     (lib.enableFeature true "notifications")
