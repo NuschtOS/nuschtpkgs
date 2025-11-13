@@ -281,9 +281,9 @@ in
         };
 
         nss = {
-        homedir_substring = "/home";
-        default_shell = getExe pkgs.bash;
-        shell_fallback = getExe pkgs.bash;
+          homedir_substring = "/home";
+          default_shell = getExe pkgs.bash;
+          shell_fallback = getExe pkgs.bash;
         };
 
         pam = {

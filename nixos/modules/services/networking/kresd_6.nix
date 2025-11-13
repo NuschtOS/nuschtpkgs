@@ -34,17 +34,17 @@ let
       net.listen(${addrSpec}, ${port}, { kind = '${kind}', freebind = true })
     '';
 
-    json-oneline = pkgs.writeTextFile {
-      name = "kresd-oneline.json";
-      text = builtins.toJSON cfg.settings;
-    };
-    # - use jq to get a pretty JSON
-    # - then validate it, so that most errors get found during OS build (not activation)
-    json = pkgs.runCommandLocal "kresd.json" {} ''
-      '${pkgs.jq}/bin/jq' < '${json-oneline}' > "$out"
-      '${manager}/bin/kresctl' validate "$out"
-    '';
-    #*/
+  json-oneline = pkgs.writeTextFile {
+    name = "kresd-oneline.json";
+    text = builtins.toJSON cfg.settings;
+  };
+  # - use jq to get a pretty JSON
+  # - then validate it, so that most errors get found during OS build (not activation)
+  json = pkgs.runCommandLocal "kresd.json" { } ''
+    '${pkgs.jq}/bin/jq' < '${json-oneline}' > "$out"
+    '${manager}/bin/kresctl' validate "$out"
+  '';
+  #*/
 
   # lua mode is somewhat broken
   configFile = # if cfg.settings == { }
@@ -56,7 +56,7 @@ let
     #   + cfg.extraConfig
     # )
     # else
-    pkgs.runCommandLocal "kresd.lua" {} ''
+    pkgs.runCommandLocal "kresd.lua" { } ''
       ${manager}/bin/kresctl convert '${json}' "$out"
     '';
 in
@@ -66,7 +66,9 @@ in
   ];
 
   imports = [
-    (lib.mkChangedOptionModule [ "services" "kresd_6" "interfaces" ] [ "services" "kresd_6" "listenPlain" ]
+    (lib.mkChangedOptionModule
+      [ "services" "kresd_6" "interfaces" ]
+      [ "services" "kresd_6" "listenPlain" ]
       (
         config:
         let
@@ -76,7 +78,11 @@ in
           value
       )
     )
-    (lib.mkRemovedOptionModule [ "services" "kresd_6" "cacheDir" ] "Please use (bind-)mounting instead.")
+    (lib.mkRemovedOptionModule [
+      "services"
+      "kresd_6"
+      "cacheDir"
+    ] "Please use (bind-)mounting instead.")
   ];
 
   options.services.kresd_6 = {
@@ -92,8 +98,9 @@ in
       example = "knot-resolver.override { extraFeatures = true; }";
     };
     settings = lib.mkOption {
-      type = lib.types.submodule { # TODO: avoid regeneration of docs on config changes
-        freeformType = (pkgs.formats.yaml {}).type;
+      type = lib.types.submodule {
+        # TODO: avoid regeneration of docs on config changes
+        freeformType = (pkgs.formats.yaml { }).type;
       };
       default = { };
       description = ''
@@ -170,12 +177,10 @@ in
       };
       systemPackages = [
         # Wrapping because the by default the config changes the location of the management socket.
-        (pkgs.runCommandLocal "knot-resolver-cmds"
-          { nativeBuildInputs = [ pkgs.makeWrapper ]; }
-          ''
-            makeWrapper '${manager}/bin/kresctl' "$out/bin/kresctl" \
-              --add-flags --config=/etc/knot-resolver/kresd.json
-          '')
+        (pkgs.runCommandLocal "knot-resolver-cmds" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+          makeWrapper '${manager}/bin/kresctl' "$out/bin/kresctl" \
+            --add-flags --config=/etc/knot-resolver/kresd.json
+        '')
       ];
     };
 
@@ -188,11 +193,17 @@ in
       wantedBy = [ "multi-user.target" ];
       path = [ (lib.getBin cfg.package) ];
       serviceConfig = {
-        ExecStart = [ "" "${manager}/bin/knot-resolver --config=/etc/knot-resolver/kresd.json" ];
+        ExecStart = [
+          ""
+          "${manager}/bin/knot-resolver --config=/etc/knot-resolver/kresd.json"
+        ];
         Environment = "KRES_LOGGING_TARGET=syslog";
         # Actually, it's unclear whether reloading will really be useful,
         # but why not fix it anyway.  (We'd need to recognize config-only changes.)
-        ExecReload = [ "" "${manager}/bin/kresctl reload --config=/etc/knot-resolver/kresd.json" ];
+        ExecReload = [
+          ""
+          "${manager}/bin/kresctl reload --config=/etc/knot-resolver/kresd.json"
+        ];
 
         Type = "notify";
         TimeoutStartSec = "10s";
@@ -201,8 +212,14 @@ in
         WorkingDirectory = "/run/knot-resolver";
         User = "knot-resolver";
         Group = "knot-resolver";
-        CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" "CAP_SETPCAP" ];
-        AmbientCapabilities   = [ "CAP_NET_BIND_SERVICE" "CAP_SETPCAP" ];
+        CapabilityBoundingSet = [
+          "CAP_NET_BIND_SERVICE"
+          "CAP_SETPCAP"
+        ];
+        AmbientCapabilities = [
+          "CAP_NET_BIND_SERVICE"
+          "CAP_SETPCAP"
+        ];
         RuntimeDirectory = "knot-resolver";
         RuntimeDirectoryMode = "0770";
         StateDirectory = "knot-resolver";

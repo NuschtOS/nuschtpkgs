@@ -190,7 +190,12 @@ let
     );
 
   mkExporterOpts = (
-    { name, port, listenAddress, user }:
+    {
+      name,
+      port,
+      listenAddress,
+      user,
+    }:
     {
       enable = mkEnableOption "the prometheus ${name} exporter";
       port = mkOption {
@@ -277,7 +282,12 @@ let
             inherit imports;
             options = (
               mkExporterOpts {
-                inherit name port listenAddress user;
+                inherit
+                  name
+                  port
+                  listenAddress
+                  user
+                  ;
               }
               // extraOpts
             );

@@ -210,7 +210,11 @@ in
   };
 
   imports = [
-    (lib.mkRemovedOptionModule [ "services" "zammad" "openPorts" ] "The openPorts option was removed in favor of the nginx.configure option.")
+    (lib.mkRemovedOptionModule [
+      "services"
+      "zammad"
+      "openPorts"
+    ] "The openPorts option was removed in favor of the nginx.configure option.")
   ];
 
   config = lib.mkIf cfg.enable {
@@ -225,7 +229,9 @@ in
 
         prog="$1"
         shift
-        sudo -u ${cfg.user} -- env ${lib.concatMapAttrsStringSep " " (n: v: "${n}=${v}") environment} bash -c "cd ${cfg.package}; ${cfg.package}/bin/$prog $(printf " %q" "$@")"
+        sudo -u ${cfg.user} -- env ${
+          lib.concatMapAttrsStringSep " " (n: v: "${n}=${v}") environment
+        } bash -c "cd ${cfg.package}; ${cfg.package}/bin/$prog $(printf " %q" "$@")"
       '')
     ];
 

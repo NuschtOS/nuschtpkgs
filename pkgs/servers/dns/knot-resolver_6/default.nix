@@ -54,23 +54,22 @@ let # un-indented, over the whole file
     ];
 
     # Path fixups for the NixOS service.
-    postPatch =
-      ''
-        patch meson.build <<EOF
-        @@ -50,2 +50,3 @@
-        -systemd_work_dir = prefix / get_option('localstatedir') / 'lib' / 'knot-resolver'
-        -systemd_cache_dir = prefix / get_option('localstatedir') / 'cache' / 'knot-resolver'
-        +systemd_work_dir  = '/var/lib/knot-resolver'
-        +systemd_cache_dir = '/var/cache/knot-resolver'
-        +run_dir = '/run' / 'knot-resolver'
-        EOF
-      ''
-      # some tests have issues with network sandboxing, apparently
-      + optionalString doInstallCheck ''
-        echo 'os.exit(77)' > daemon/lua/trust_anchors.test/bootstrap.test.lua
-        sed -E '/^[[:blank:]]*test_(dstaddr|headers),?$/d' -i \
-          tests/config/doh2.test.lua modules/http/http_doh.test.lua
-      '';
+    postPatch = ''
+      patch meson.build <<EOF
+      @@ -50,2 +50,3 @@
+      -systemd_work_dir = prefix / get_option('localstatedir') / 'lib' / 'knot-resolver'
+      -systemd_cache_dir = prefix / get_option('localstatedir') / 'cache' / 'knot-resolver'
+      +systemd_work_dir  = '/var/lib/knot-resolver'
+      +systemd_cache_dir = '/var/cache/knot-resolver'
+      +run_dir = '/run' / 'knot-resolver'
+      EOF
+    ''
+    # some tests have issues with network sandboxing, apparently
+    + optionalString doInstallCheck ''
+      echo 'os.exit(77)' > daemon/lua/trust_anchors.test/bootstrap.test.lua
+      sed -E '/^[[:blank:]]*test_(dstaddr|headers),?$/d' -i \
+        tests/config/doh2.test.lua modules/http/http_doh.test.lua
+    '';
 
     preConfigure = ''
       patchShebangs scripts/
@@ -83,52 +82,49 @@ let # un-indented, over the whole file
     ];
 
     # http://knot-resolver.readthedocs.io/en/latest/build.html#requirements
-    buildInputs =
-      [
-        knot-dns
-        lua.lua
-        libuv
-        gnutls
-        lmdb
-      ]
-      ## the rest are optional dependencies
-      ++ optionals stdenv.hostPlatform.isLinux [
-        # lib
-        systemd
-        libcap_ng
-      ]
-      ++ [
-        jemalloc
-        nghttp2
-      ]
-      ++ [
-        fstrm
-        grpc-tools
-      ] # dnstap support
+    buildInputs = [
+      knot-dns
+      lua.lua
+      libuv
+      gnutls
+      lmdb
+    ]
+    ## the rest are optional dependencies
+    ++ optionals stdenv.hostPlatform.isLinux [
+      # lib
+      systemd
+      libcap_ng
+    ]
+    ++ [
+      jemalloc
+      nghttp2
+    ]
+    ++ [
+      fstrm
+      grpc-tools
+    ] # dnstap support
     ;
 
-    mesonFlags =
-      [
-        "-Dkeyfile_default=${dns-root-data}/root.ds"
-        "-Droot_hints=${dns-root-data}/root.hints"
-        "-Dinstall_kresd_conf=disabled" # not really useful; examples are inside share/doc/
-        "-Dmalloc=jemalloc"
-        "--default-library=static" # not used by anyone
-      ]
-      ++ optional doInstallCheck "-Dunit_tests=enabled"
-      ++ optional doInstallCheck "-Dconfig_tests=enabled"
-      ++ optional stdenv.hostPlatform.isLinux "-Dsystemd_files=enabled" # used by NixOS service
+    mesonFlags = [
+      "-Dkeyfile_default=${dns-root-data}/root.ds"
+      "-Droot_hints=${dns-root-data}/root.hints"
+      "-Dinstall_kresd_conf=disabled" # not really useful; examples are inside share/doc/
+      "-Dmalloc=jemalloc"
+      "--default-library=static" # not used by anyone
+    ]
+    ++ optional doInstallCheck "-Dunit_tests=enabled"
+    ++ optional doInstallCheck "-Dconfig_tests=enabled"
+    ++ optional stdenv.hostPlatform.isLinux "-Dsystemd_files=enabled" # used by NixOS service
     #"-Dextra_tests=enabled" # not suitable as in-distro tests; many deps, too.
     ;
 
-    postInstall =
-      ''
-        cp -r ./python "$config_py"
-        rm "$out"/lib/libkres.a
-      ''
-      + optionalString stdenv.hostPlatform.isLinux ''
-        rm -r "$out"/lib/sysusers.d/ # ATM more likely to harm than help
-      '';
+    postInstall = ''
+      cp -r ./python "$config_py"
+      rm "$out"/lib/libkres.a
+    ''
+    + optionalString stdenv.hostPlatform.isLinux ''
+      rm -r "$out"/lib/sysusers.d/ # ATM more likely to harm than help
+    '';
 
     doInstallCheck = with stdenv; hostPlatform == buildPlatform;
     nativeInstallCheckInputs = [
@@ -168,7 +164,13 @@ let # un-indented, over the whole file
         ];
         preferLocalBuild = true;
         allowSubstitutes = false;
-        inherit (unwrapped) pname version src config_py meta;
+        inherit (unwrapped)
+          pname
+          version
+          src
+          config_py
+          meta
+          ;
       }
       (
         ''

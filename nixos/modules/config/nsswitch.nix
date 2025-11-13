@@ -59,7 +59,7 @@
 
           This option only takes effect if nscd is enabled.
         '';
-        default = [];
+        default = [ ];
       };
 
       shadow = lib.mkOption {

@@ -595,14 +595,18 @@ let
             ${muc.extraConfig}
       '') cfg.muc}
 
-      ${lib.optionalString (cfg.httpFileShare != null) ''
-        Component ${toLua cfg.httpFileShare.domain} "http_file_share"
-          modules_disabled = { "s2s" }
-        '' + lib.optionalString (cfg.httpFileShare.http_host != null) ''
-            http_host = "${cfg.httpFileShare.http_host}"
-        '' + ''
-        ${settingsToLua "  http_file_share_" (cfg.httpFileShare // { domain = null; })}
-      ''}
+      ${
+        lib.optionalString (cfg.httpFileShare != null) ''
+          Component ${toLua cfg.httpFileShare.domain} "http_file_share"
+            modules_disabled = { "s2s" }
+        ''
+        + lib.optionalString (cfg.httpFileShare.http_host != null) ''
+          http_host = "${cfg.httpFileShare.http_host}"
+        ''
+        + ''
+          ${settingsToLua "  http_file_share_" (cfg.httpFileShare // { domain = null; })}
+        ''
+      }
 
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (n: v: ''
@@ -980,7 +984,9 @@ in
       wantedBy = [ "multi-user.target" ];
       restartTriggers = [ config.environment.etc."prosody/prosody.cfg.lua".source ];
       preStart = ''
-        ${pkgs.envsubst}/bin/envsubst -i ${config.environment.etc."prosody/prosody.cfg.lua".source} -o /run/prosody/prosody.cfg.lua
+        ${pkgs.envsubst}/bin/envsubst -i ${
+          config.environment.etc."prosody/prosody.cfg.lua".source
+        } -o /run/prosody/prosody.cfg.lua
       '';
       serviceConfig = mkMerge [
         {

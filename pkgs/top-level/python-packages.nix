@@ -9008,7 +9008,9 @@ self: super: with self; {
 
   mkdocs-swagger-ui-tag = callPackage ../development/python-modules/mkdocs-swagger-ui-tag { };
 
-  mkdocs-table-reader-plugin = callPackage ../development/python-modules/mkdocs-table-reader-plugin { };
+  mkdocs-table-reader-plugin =
+    callPackage ../development/python-modules/mkdocs-table-reader-plugin
+      { };
 
   mkdocs-test = callPackage ../development/python-modules/mkdocs-test { };
 
