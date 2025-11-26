@@ -1,12 +1,13 @@
 # NuschtOS / Nuschtpkgs
 
-This is a [Nixpkgs](https://github.com/NixOS/nixpkgs) fork where we manualy backport PRs that are *relevant to us*.
+This is a [Nixpkgs](https://github.com/NixOS/nixpkgs) fork where we manually backport PRs that are *relevant to us*.
 
 | Name | Upstream Branch | Description |
 |---|---|---|
 | nixos-unstable | nixos-unstable | Includes backports required for running NixOS-Modules. |
 | nixos-25.05 | nixos-25.05 | Includes backports required for running NixOS-Modules. |
-| backports-25.05 | nixos-25.05 | Includes backports that are *relevant to us*. Not intendet for outside use. |
+| backports-25.05 | nixos-25.05 | Includes backports that are *relevant to us*. Not intended for outside use. |
+| backports-25.11 | nixos-25.11 | Includes backports that are *relevant to us*. Not intended for outside use. | 
 
 ## Contact
 
