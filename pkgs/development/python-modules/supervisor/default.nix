@@ -22,6 +22,10 @@ buildPythonPackage {
     hash = "sha256-SivxSa30KZfhu0S3DEO2EydeyYUsPtrMqGqRZrJ+lF4=";
   };
 
+  patches = [
+    ./improve-plugin-loading-error.diff
+  ];
+
   build-system = [ setuptools ];
 
   # wants to write to /tmp/foo which is likely already owned by another
