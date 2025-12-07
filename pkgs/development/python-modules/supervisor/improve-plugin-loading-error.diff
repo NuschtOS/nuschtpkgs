@@ -1,0 +1,63 @@
+diff --git a/supervisor/options.py b/supervisor/options.py
+index 672dba1..897d078 100644
+--- a/supervisor/options.py
++++ b/supervisor/options.py
+@@ -374,9 +374,9 @@ def get_plugins(self, parser, factory_key, section_prefix):
+                                  (section, factory_key))
+             try:
+                 factory = self.import_spec(factory_spec)
+-            except (AttributeError, ImportError):
+-                raise ValueError('%s cannot be resolved within [%s]' % (
+-                    factory_spec, section))
++            except (AttributeError, ImportError) as e:
++                raise ValueError('%s cannot be resolved within [%s]: %s' % (
++                    factory_spec, section, e))
+ 
+             extras = {}
+             for k in parser.options(section):
+@@ -743,9 +743,9 @@ def get(section, opt, default, **kwargs):
+                                        'supervisor.dispatchers:default_handler')
+             try:
+                 result_handler = self.import_spec(result_handler)
+-            except (AttributeError, ImportError):
+-                raise ValueError('%s cannot be resolved within [%s]' % (
+-                    result_handler, section))
++            except (AttributeError, ImportError) as e:
++                raise ValueError('%s cannot be resolved within [%s]: %s' % (
++                    result_handler, section, e))
+ 
+             pool_event_names = [x.upper() for x in
+                                 list_of_strings(get(section, 'events', ''))]
+diff --git a/supervisor/tests/test_options.py b/supervisor/tests/test_options.py
+index 769d2cb..9988d50 100644
+--- a/supervisor/tests/test_options.py
++++ b/supervisor/tests/test_options.py
+@@ -2644,7 +2644,8 @@ def test_event_listener_pool_result_handler_unimportable_ImportError(self):
+         except ValueError as exc:
+             self.assertEqual(exc.args[0],
+                 'thisishopefullynotanimportablepackage:nonexistent cannot be '
+-                'resolved within [eventlistener:cat]')
++                'resolved within [eventlistener:cat]: No module named '
++                '\'thisishopefullynotanimportablepackage\'')
+ 
+     def test_event_listener_pool_result_handler_unimportable_AttributeError(self):
+         text = lstrip("""\
+@@ -2663,7 +2664,8 @@ def test_event_listener_pool_result_handler_unimportable_AttributeError(self):
+         except ValueError as exc:
+             self.assertEqual(exc.args[0],
+                 'supervisor.tests.base:nonexistent cannot be '
+-                'resolved within [eventlistener:cat]')
++                'resolved within [eventlistener:cat]: module '
++                '\'supervisor.tests.base\' has no attribute \'nonexistent\'')
+ 
+     def test_event_listener_pool_noeventsline(self):
+         text = lstrip("""\
+@@ -3216,7 +3218,7 @@ def test_rpcinterfaces_from_parser_factory_not_importable(self):
+             self.fail('nothing raised')
+         except ValueError as exc:
+             self.assertEqual(exc.args[0], 'nonexistent cannot be resolved '
+-                'within [rpcinterface:dummy]')
++                'within [rpcinterface:dummy]: No module named \'nonexistent\'')
+ 
+     def test_clear_autochildlogdir(self):
+         dn = tempfile.mkdtemp()
