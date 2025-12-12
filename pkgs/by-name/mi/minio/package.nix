@@ -39,7 +39,11 @@ buildGoModule (finalAttrs: {
     hash = "sha256-HbjmCJYkWyRRHKriLP6QohaXYLk3QEVfi32Krq3ujjo=";
   };
 
-  vendorHash = "sha256-BFnTJE9QFWmPsx90hDTG8MusdnwaBPYJxM5bCFk3hew=";
+  patches = [
+    ./bring-back-console.diff
+  ];
+
+  vendorHash = "sha256-OlVvzILR3RvGy145lR81hR1blOg+PuMrjMhB7z/4qlI=";
 
   doCheck = false;
 
