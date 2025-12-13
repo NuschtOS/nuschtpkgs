@@ -31,13 +31,13 @@
   xorg,
 }:
 let
-  version = "2.20.1";
+  version = "2.20.2";
 
   src = fetchFromGitHub {
     owner = "paperless-ngx";
     repo = "paperless-ngx";
     tag = "v${version}";
-    hash = "sha256-16eW8Yca/HgIr0wiFQq6Q5czCgA7gac1sR1q2g+ZkEc=";
+    hash = "sha256-jsHGQ1xjHu+yagy73/eCB/3h7ZHasMdt4rWQuFvDfis=";
   };
 
   python = python3.override {
@@ -86,7 +86,7 @@ let
       inherit (finalAttrs) pname version src;
       pnpm = pnpm';
       fetcherVersion = 2;
-      hash = "sha256-+fE+IUyhoENnweFggLuS9LHwcLTZrLS1TBzuXHkaNAk=";
+      hash = "sha256-pG7olcBq5P52CvZYLqUjb+RwxjbQbSotlS50pvgm7WQ=";
     };
 
     nativeBuildInputs = [
@@ -159,11 +159,6 @@ python.pkgs.buildPythonApplication rec {
   inherit version src;
 
   patches = [
-    (fetchpatch {
-      name = "GHSA-24x5-wp64-9fcc.patch";
-      url = "https://github.com/paperless-ngx/paperless-ngx/commit/9bdbfd362f4a15f8de109ca959f04e3a7d8a39d0.patch";
-      hash = "sha256-1iiOeWKvBoHFLa1QySkXYTbX5CVF3VQDWno6A/SinCs=";
-    })
     (fetchpatch {
       name = "GHSA-7cq3-mhxq-w946.patch";
       url = "https://github.com/paperless-ngx/paperless-ngx/commit/bf38ae98f1ac3bae2c6006888a8705e42fbb804f.patch";
