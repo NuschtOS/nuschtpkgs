@@ -2,6 +2,10 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  pnpm,
+  nodejs,
+  rustPlatform,
+  nixosTests,
 }:
 
 let
@@ -71,6 +75,10 @@ rustPlatform.buildRustPackage rec {
     # assertion failed
     "--skip storage::concurrent_get_object_test::tests::test_advanced_buffer_sizing"
   ];
+
+  passthru.tests = {
+    inherit (nixosTests) rustfs;
+  };
 
   meta = {
     description = "S3-compatible high-performance object storage system supporting migration and coexistence with other S3-compatible platforms such as MinIO and Ceph";
