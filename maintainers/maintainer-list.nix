@@ -24816,7 +24816,7 @@
   Scrumplex = {
     name = "Sefa Eyeoglu";
     email = "contact@scrumplex.net";
-    matrix = "@Scrumplex:duckhub.io";
+    matrix = "@scrumplex:duckhub.io";
     github = "Scrumplex";
     githubId = 11587657;
     keys = [ { fingerprint = "E173 237A C782 296D 98F5  ADAC E13D FD4B 4712 7951"; } ];
