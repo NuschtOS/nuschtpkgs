@@ -3,7 +3,6 @@
   stdenv,
   fetchFromGitHub,
   fetchPypi,
-  fetchpatch,
   node-gyp,
   nodejs_20,
   nixosTests,
@@ -31,13 +30,13 @@
   xorg,
 }:
 let
-  version = "2.20.3";
+  version = "2.20.4";
 
   src = fetchFromGitHub {
     owner = "paperless-ngx";
     repo = "paperless-ngx";
     tag = "v${version}";
-    hash = "sha256-aAcE0AUkB5SS4jwFOKCM7+iqc7EqGJv0qjqz0mnj2Wo=";
+    hash = "sha256-xWyYisSJ5FKU+ZFrCtjo94TjqXCzHDVdPAISMTX0Tt8=";
   };
 
   python = python3.override {
@@ -157,14 +156,6 @@ python.pkgs.buildPythonApplication rec {
   pyproject = true;
 
   inherit version src;
-
-  patches = [
-    (fetchpatch {
-      name = "GHSA-28cf-xvcf-hw6m.patch";
-      url = "https://github.com/paperless-ngx/paperless-ngx/commit/7c457466b76d7a4abeca521043de69d3c1f4eb11.patch";
-      hash = "sha256-t2/3lnhj1eywGiX1zmo7aJ+aOEdTWr0xe7yaFj8NeMs=";
-    })
-  ];
 
   postPatch = ''
     # pytest-xdist with to many threads makes the tests flaky
