@@ -6,7 +6,7 @@
   pkg-config,
   openssl,
   buildNpmPackage,
-  nodejs_20,
+  nodejs,
   nix-update-script,
   nixosTests,
 }:
@@ -25,9 +25,7 @@ let
   rqbit-webui = buildNpmPackage {
     pname = "rqbit-webui";
 
-    nodejs = nodejs_20;
-
-    inherit version src;
+    inherit version src nodejs;
 
     sourceRoot = "${src.name}/crates/librqbit/webui";
 
