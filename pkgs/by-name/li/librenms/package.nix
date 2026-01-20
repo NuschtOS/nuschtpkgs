@@ -33,7 +33,7 @@ phpPackage.buildComposerProject2 rec {
     hash = "sha256-d73izEdLWviOp0XcMbQ3goLWgLZupO4QtQv7WUxdfk8=";
   };
 
-  vendorHash = "sha256-34+srnXDto82xuITDSPEiNnbCgmZbijvpqpmwlszCEg=";
+  vendorHash = "sha256-F+1sUznBxT6Xn4vZAevehwboIsELyItal0lthPDJX5c=";
 
   php = phpPackage;
 
