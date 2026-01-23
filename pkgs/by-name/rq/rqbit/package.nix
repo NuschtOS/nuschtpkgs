@@ -13,13 +13,13 @@
 let
   pname = "rqbit";
 
-  version = "8.1.1";
+  version = "9.0.0-beta.2";
 
   src = fetchFromGitHub {
     owner = "ikatson";
     repo = "rqbit";
     rev = "v${version}";
-    hash = "sha256-5ErcI3hwC2EgxsjgEVlbHP1MzBf/LndpgTfynQGc29s=";
+    hash = "sha256-48gWvfPsmsQAifxHHCNpWYE8cGxdA4I4c27yqykSNK0=";
   };
 
   rqbit-webui = buildNpmPackage {
@@ -27,9 +27,12 @@ let
 
     inherit version src nodejs;
 
-    sourceRoot = "${src.name}/crates/librqbit/webui";
 
-    npmDepsHash = "sha256-vib8jpf7Jn1qv0m/dWJ4TbisByczNbtEd8hIM5ll2Q8=";
+    npmDepsHash = "sha256-78mSuT6D49F0SWJIHBxZBKS0bZImwXXqk+lfmzL2R70=";
+
+    preBuild = ''
+      cd crates/librqbit/webui
+    '';
 
     installPhase = ''
       runHook preInstall
@@ -44,7 +47,7 @@ in
 rustPlatform.buildRustPackage {
   inherit pname version src;
 
-  cargoHash = "sha256-gYasOjrG0oeT/6Ben57MKAvBtgpoSmZ93RZQqSXAxIc=";
+  cargoHash = "sha256-cOB4hgwGIT6NzNI45cp755ysABtXVXQ45cweJPqKdWU=";
 
   nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
 
