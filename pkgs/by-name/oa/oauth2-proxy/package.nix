@@ -31,5 +31,8 @@ buildGoModule rec {
     license = lib.licenses.mit;
     teams = [ lib.teams.serokell ];
     mainProgram = "oauth2-proxy";
+    maintainers = with lib.maintainers; [
+      swarsel
+    ];
   };
 }
