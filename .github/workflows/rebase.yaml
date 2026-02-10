@@ -18,10 +18,8 @@ jobs:
         include:
           - target: "nixos-unstable"
             upstream: "nixos-unstable"
-          - target: "nixos-25.05"
-            upstream: "nixos-25.05"
-          - target: "backports-25.05"
-            upstream: "nixos-25.05"
+          - target: "nixos-25.11"
+            upstream: "nixos-25.11"
           - target: "backports-25.11"
             upstream: "nixos-25.11"
 
