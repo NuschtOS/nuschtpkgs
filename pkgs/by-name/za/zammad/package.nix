@@ -22,6 +22,8 @@
 }:
 
 let
+  ruby = ruby_3_4;
+
   pname = "zammad";
   version = "7.0.1";
 
