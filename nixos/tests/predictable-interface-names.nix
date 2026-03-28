@@ -43,9 +43,10 @@ pkgs.lib.listToAttrs (
         meta = { };
 
         nodes.machine =
-          { lib, ... }:
+          { pkgs, lib, ... }:
           let
             script = ''
+              ${lib.getExe' pkgs.systemd "udevadm"} settle --timeout=180
               ip link
               if ${lib.optionalString predictable "!"} ip link show eth0; then
                 echo Success
@@ -66,10 +67,8 @@ pkgs.lib.listToAttrs (
             boot.initrd.systemd = lib.mkIf systemdStage1 {
               enable = true;
               initrdBin = [ pkgs.iproute2 ];
-              services.systemd-udev-settle.wantedBy = [ "initrd.target" ];
               services.check-interfaces = {
                 requiredBy = [ "initrd.target" ];
-                after = [ "systemd-udev-settle.service" ];
                 serviceConfig.Type = "oneshot";
                 path = [ pkgs.iproute2 ];
                 inherit script;
