@@ -225,14 +225,14 @@ lib.makeExtensible (
 
       nixComponents_2_34 =
         (nixDependencies.callPackage ./modular/packages.nix rec {
-          version = "2.34.4";
+          version = "2.34.5";
           inherit (self.nix_2_33.meta) maintainers teams;
           otherSplices = generateSplicesForNixComponents "nixComponents_2_34";
           src = fetchFromGitHub {
             owner = "NixOS";
             repo = "nix";
             tag = version;
-            hash = "sha256-WPuGqMQGepXoRYjtRudMAMHEoLsIObw2x4sVfho5feA=";
+            hash = "sha256-/S2bnz+TbRFGmNyR31Hfa70uFvJoMM9wYDjpyEw8I+U=";
           };
         }).appendPatches
           patches_common;
