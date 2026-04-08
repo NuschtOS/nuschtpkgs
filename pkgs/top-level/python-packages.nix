@@ -2732,6 +2732,8 @@ self: super: with self; {
 
   brother-ql-next = callPackage ../development/python-modules/brother-ql-next { };
 
+  brother-ql-inventree = callPackage ../development/python-modules/brother-ql-inventree { };
+
   brotli = callPackage ../development/python-modules/brotli {
     inherit (pkgs) brotli;
   };
