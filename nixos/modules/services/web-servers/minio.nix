@@ -127,6 +127,7 @@ in
             User = "minio";
             Group = "minio";
             LimitNOFILE = 65536;
+            Restart = "always";
             EnvironmentFile =
               if (cfg.rootCredentialsFile != null) then
                 cfg.rootCredentialsFile
