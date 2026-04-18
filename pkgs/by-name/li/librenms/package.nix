@@ -11,10 +11,13 @@
   ipmitool,
   libvirt,
   monitoring-plugins,
+  mtr,
   net-snmp,
   nfdump,
+  nmap,
   rrdtool,
   system-sendmail,
+  whois,
   dataDir ? "/var/lib/librenms",
   logDir ? "/var/log/librenms",
 }:
@@ -42,11 +45,14 @@ phpPackage.buildComposerProject2 rec {
     ipmitool
     libvirt
     monitoring-plugins
+    mtr
     net-snmp
     nfdump
+    nmap
     rrdtool
     system-sendmail
     unixtools.whereis
+    whois
     (python3.withPackages (
       ps: with ps; [
         pymysql
@@ -70,11 +76,6 @@ phpPackage.buildComposerProject2 rec {
     # This broken logic leads to bad settings being persisted in the database
     patch -p1 -d $out -i ${./broken-binary-paths.diff}
 
-    # Manually cherry-picked patch for CVE-2026-6204
-    # Cherry-Picked frim https://github.com/librenms/librenms/pull/19131
-    # https://github.com/NixOS/nixpkgs/issues/509914
-    patch -p1 -d $out -i ${./rce-fix.patch}
-
     substituteInPlace \
       $out/resources/definitions/config_definitions.json \
       --replace-fail '"default": "fping",' '"default": "/run/wrappers/bin/fping",' \
@@ -84,8 +85,6 @@ phpPackage.buildComposerProject2 rec {
       --replace-fail '"default": "traceroute",' '"default": "/run/wrappers/bin/traceroute",' \
       --replace-fail '"default": "/usr/bin/ipmitool",' '"default": "${ipmitool}/bin/ipmitool",' \
       --replace-fail '"default": "/usr/bin/nfdump",' '"default": "${nfdump}/bin/nfdump",' \
-      --replace-fail '"default": "/usr/bin/sfdp",' '"default": "${graphviz}/bin/sfdp",' \
-      --replace-fail '"default": "/usr/bin/nmap",' '"default": "${nmap}/bin/nmap",' \
       --replace-fail '"default": "/usr/bin/snmpbulkwalk",' '"default": "${net-snmp}/bin/snmpbulkwalk",' \
       --replace-fail '"default": "/usr/bin/snmpget",' '"default": "${net-snmp}/bin/snmpget",' \
       --replace-fail '"default": "/usr/bin/snmptranslate",' '"default": "${net-snmp}/bin/snmptranslate",' \
@@ -123,8 +122,10 @@ phpPackage.buildComposerProject2 rec {
     description = "Auto-discovering PHP/MySQL/SNMP based network monitoring";
     homepage = "https://www.librenms.org/";
     license = lib.licenses.gpl3Only;
-    maintainers = with lib.maintainers; [ netali ];
-    teams = [ lib.teams.wdz ];
+    maintainers = with lib.maintainers; [
+      netali
+      johannwagner
+    ];
     platforms = lib.platforms.linux;
   };
 }
