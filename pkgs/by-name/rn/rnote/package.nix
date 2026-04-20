@@ -5,7 +5,6 @@
   alsa-lib,
   appstream,
   appstream-glib,
-  cargo,
   cmake,
   desktop-file-utils,
   dos2unix,
@@ -19,26 +18,28 @@
   pkg-config,
   poppler,
   python3,
-  rustPlatform,
-  rustc,
+  rustPackages_1_94,
   shared-mime-info,
   wrapGAppsHook4,
 }:
 
+let
+  inherit (rustPackages_1_94) rustc cargo rustPlatform;
+in
 stdenv.mkDerivation rec {
   pname = "rnote";
-  version = "0.13.1";
+  version = "0.14.1";
 
   src = fetchFromGitHub {
     owner = "flxzt";
     repo = "rnote";
     tag = "v${version}";
-    hash = "sha256-EMxA5QqmIae/d3nUpwKjgURo0nOyaNbma8poB5mcQW0=";
+    hash = "sha256-uOfFZuxxU8StirS5E/Tm8Lg58u8s4USgA9BeEUKw3xE=";
   };
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     inherit pname version src;
-    hash = "sha256-fr1bDTzTKx7TLBqw94CyaB0/Jo2x1BzZcM6dcen1PHc=";
+    hash = "sha256-N3mh/hGQ/Pu01uGL5e8BZvrrEm3u7cnJHSqt5FHynKQ=";
   };
 
   nativeBuildInputs = [
