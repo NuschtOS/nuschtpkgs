@@ -1132,6 +1132,8 @@ self: super: with self; {
 
   audible = callPackage ../development/python-modules/audible { };
 
+  audio-hotplug = callPackage ../development/python-modules/audio-hotplug { };
+
   audio-metadata = callPackage ../development/python-modules/audio-metadata { };
 
   audioop-lts =
