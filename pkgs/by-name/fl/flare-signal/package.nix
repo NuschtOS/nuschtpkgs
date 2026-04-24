@@ -2,7 +2,7 @@
   lib,
   stdenv,
   fetchFromGitLab,
-  cargo,
+  rustPlatform,
   meson,
   ninja,
   perl,
@@ -14,12 +14,12 @@
   libsecret,
   libadwaita,
   gtksourceview5,
-  rustPlatform,
-  rustc,
   appstream,
   blueprint-compiler,
   desktop-file-utils,
   wrapGAppsHook4,
+  cargo,
+  rustc,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
