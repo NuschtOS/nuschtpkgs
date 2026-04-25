@@ -1,7 +1,7 @@
 {
   lib,
   writeText,
-  rustPlatform,
+  rustPackages_1_94,
   fetchFromGitHub,
   curl,
   installShellFiles,
@@ -19,6 +19,7 @@
 }:
 
 let
+  inherit (rustPackages_1_94) rustPlatform;
   get-nix-license = import ./get_nix_license.nix {
     inherit lib writeText;
   };
