@@ -1,6 +1,6 @@
 {
   lib,
-  buildGoModule,
+  buildGo126Module,
   fetchFromGitHub,
   nixosTests,
 }:
@@ -28,22 +28,18 @@ let
   #   => "2021"
   versionToYear = version: builtins.elemAt (lib.splitString "-" version) 0;
 in
-buildGoModule rec {
+buildGo126Module rec {
   pname = "minio";
-  version = "2025-10-15T17-29-55Z";
+  version = "2026-04-17T00-00-00Z";
 
   src = fetchFromGitHub {
-    owner = "minio";
+    owner = "pgsty";
     repo = "minio";
-    rev = "RELEASE.${version}";
-    hash = "sha256-HbjmCJYkWyRRHKriLP6QohaXYLk3QEVfi32Krq3ujjo=";
+    tag = "RELEASE.${version}";
+    hash = "sha256-iU2Tjq3mQzpzziiRMlX2s38oh1pZf3bqH8NcWqLRBeE=";
   };
 
-  patches = [
-    ./bring-back-console.diff
-  ];
-
-  vendorHash = "sha256-OlVvzILR3RvGy145lR81hR1blOg+PuMrjMhB7z/4qlI=";
+  vendorHash = "sha256-/oGOU4WOZ4k7ycVh0peI4j0vHw2DfTC2Z21NqELndiA=";
 
   doCheck = false;
 
@@ -71,7 +67,7 @@ buildGoModule rec {
   meta = {
     homepage = "https://www.minio.io/";
     description = "S3-compatible object storage server";
-    changelog = "https://github.com/minio/minio/releases/tag/RELEASE.${version}";
+    changelog = "https://github.com/pgsty/minio/releases/tag/RELEASE.${version}";
     maintainers = with lib.maintainers; [
       bachp
       ryan4yin
