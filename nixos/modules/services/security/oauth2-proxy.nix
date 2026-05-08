@@ -55,6 +55,7 @@ let
       pass-basic-auth = passBasicAuth;
       pass-host-header = passHostHeader;
       reverse-proxy = reverseProxy;
+      trusted-proxy-ip = trustedProxyIP;
       proxy-prefix = proxyPrefix;
       profile-url = profileURL;
       oidc-issuer-url = oidcIssuerUrl;
@@ -490,6 +491,16 @@ in
       '';
     };
 
+    trustedProxyIP = lib.mkOption {
+      type = with lib.types; listOf str;
+      default = [ ];
+      description = ''
+        List of IPs or CIDR ranges allowed to supply X-Forwarded-* headers when reverseProxy is enabled.
+        If not set, OAuth2 Proxy preserves backwards compatibility by trusting all source IPs (0.0.0.0/0, ::/0) and logs a warning at startup.
+        Configure this to your reverse proxy addresses to prevent forwarded header spoofing.
+      '';
+    };
+
     proxyPrefix = lib.mkOption {
       type = lib.types.str;
       default = "/oauth2";
@@ -603,6 +614,13 @@ in
       clientSecret = lib.mkDefault null;
       cookie.secret = lib.mkDefault null;
     };
+
+    warnings = lib.mkIf (cfg.reverseProxy -> cfg.trustedProxyIP == [ ]) [
+      ''
+        When config.services.oauth2-proxy.reverseProxy is enabled, configure config.services.oauth2-proxy.trustedProxyIP to the IPs or CIDR range(s) of the reverse proxies that are allowed to send X-Forwarded-* headers.
+        If you leave it unset, OAuth2 Proxy currently trusts all source IPs for backwards compatibility, which means a client that can reach OAuth2 Proxy directly may be able to spoof forwarded headers.
+      ''
+    ];
 
     users.users.oauth2-proxy = {
       description = "OAuth2 Proxy";
