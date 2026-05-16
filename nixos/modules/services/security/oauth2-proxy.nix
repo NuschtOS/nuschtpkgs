@@ -615,7 +615,7 @@ in
       cookie.secret = lib.mkDefault null;
     };
 
-    warnings = lib.mkIf (cfg.reverseProxy -> cfg.trustedProxyIP == [ ]) [
+    warnings = lib.mkIf (cfg.reverseProxy && cfg.trustedProxyIP == [ ]) [
       ''
         When config.services.oauth2-proxy.reverseProxy is enabled, configure config.services.oauth2-proxy.trustedProxyIP to the IPs or CIDR range(s) of the reverse proxies that are allowed to send X-Forwarded-* headers.
         If you leave it unset, OAuth2 Proxy currently trusts all source IPs for backwards compatibility, which means a client that can reach OAuth2 Proxy directly may be able to spoof forwarded headers.
