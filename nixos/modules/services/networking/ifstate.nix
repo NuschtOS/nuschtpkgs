@@ -1,5 +1,7 @@
 {
   lib,
+  utils,
+  options,
   config,
   pkgs,
   ...
@@ -92,6 +94,48 @@ let
       DefaultDependencies = "no";
     };
   };
+
+  mkHook =
+    name: cfg:
+    let
+      args =
+        (lib.cli.toCommandLineGNU { } {
+          property = lib.pipe cfg.systemdProps [
+            lib.attrsToList
+            (lib.concatMap (
+              { name, value }:
+              if builtins.isList value then
+                (map (value: "${name}=${builtins.toString value}") value)
+              else
+                [ "${name}=${builtins.toString value}" ]
+            ))
+          ];
+        })
+        ++ cfg.command;
+      escapeShellArg =
+        arg:
+        let
+          string = toString arg;
+        in
+        if lib.match "[[:alnum:],._+:@%/-]+" string == null then
+          "\"${lib.replaceString "\"" "'\\'\"" string}\""
+        else
+          string;
+      escapeShellArgs = lib.concatMapStringsSep " " escapeShellArg;
+    in
+    {
+      script = pkgs.replaceVarsWith {
+        src = ./ifstate-hook-wrapper.sh;
+        replacements = {
+          hookName = lib.replaceString "\"" "'\\'\"" name;
+          hookDescription = lib.replaceString "\"" "'\\'\"" cfg.description;
+          systemdRunArgs = escapeShellArgs args;
+        };
+        postBuild = ''
+          chmod +x $out
+        '';
+      };
+    };
 in
 {
   meta.maintainers = with lib.maintainers; [ marcel ];
@@ -106,6 +150,36 @@ in
         inherit (settingsFormat) type;
         default = { };
         description = "Content of IfState's configuration file. See <https://ifstate.net/2.2/schema/> for details.";
+      };
+
+      hooks = lib.mkOption {
+        type = lib.types.attrsOf (
+          lib.types.submodule {
+            options = {
+              description = lib.mkOption {
+                type = lib.types.str;
+                description = "Description suffix of this hook used in systemd messages and progress indicators.";
+              };
+
+              systemdProps = (options.systemd.services.type.getSubOptions "").serviceConfig;
+
+              command = lib.mkOption {
+                type = with lib.types; listOf str;
+                description = "Command to run in the hook.";
+              };
+            };
+
+            config = {
+              systemdProps = {
+                After = commonServiceConfig.after;
+                Before = commonServiceConfig.before;
+                Conflicts = commonServiceConfig.conflicts;
+                Wants = commonServiceConfig.wants;
+                inherit (commonServiceConfig.unitConfig) DefaultDependencies;
+              };
+            };
+          }
+        );
       };
     };
 
@@ -131,6 +205,26 @@ in
         inherit (settingsFormat) type;
         default = { };
         description = "Content of IfState's initrd configuration file. See <https://ifstate.net/2.2/schema/> for details.";
+      };
+
+      hooks = lib.mkOption {
+        type = lib.types.attrsOf (
+          lib.types.submodule {
+            options = {
+              description = lib.mkOption {
+                type = lib.types.str;
+                description = "Description suffix of this hook used in systemd messages and progress indicators.";
+              };
+
+              systemdProps = (options.boot.initrd.systemd.services.type.getSubOptions "").serviceConfig;
+
+              command = lib.mkOption {
+                type = lib.types.str;
+                description = "Command to run in the hook.";
+              };
+            };
+          }
+        );
       };
 
       cleanupSettings = lib.mkOption {
@@ -163,7 +257,10 @@ in
         }
       ];
 
-      networking.useDHCP = lib.mkDefault false;
+      networking = {
+        ifstate.settings.parameters.hooks = lib.mapAttrs mkHook cfg.hooks;
+        useDHCP = lib.mkDefault false;
+      };
 
       environment = {
         # ifstatecli command should be available to use user, there are other useful subcommands like check or show
@@ -225,7 +322,11 @@ in
       };
 
       boot.initrd = {
-        network.udhcpc.enable = lib.mkDefault false;
+        network = {
+          ifstate.settings.parameters.hooks = lib.mapAttrs mkHook cfg.hooks;
+
+          udhcpc.enable = lib.mkDefault false;
+        };
 
         # automatic configuration of kernel modules of virtual interface types
         availableKernelModules =
