@@ -52,6 +52,7 @@ stdenv.mkDerivation rec {
     "MAN8PATH=/share/man/man8"
     "SYSDPATH=/lib/systemd/system"
     "PMPATHD=/lib/systemd/system-sleep"
+    "VERS=${version}" # fix cross by preventing to execute compiled binary
   ];
 
   patches = [
@@ -66,9 +67,6 @@ stdenv.mkDerivation rec {
     for f in *.{sh,service}; do
       findutils=${findutils} systemd=${systemd} substituteAllInPlace "$f"
     done
-
-    substituteInPlace Makefile --replace 'chown' 'true'
-    substituteInPlace Makefile --replace 'chmod 04711' 'chmod 0711'
   '';
 
   preInstall = ''
