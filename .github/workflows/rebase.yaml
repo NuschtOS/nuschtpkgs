@@ -20,6 +20,8 @@ jobs:
             upstream: "nixos-unstable"
           - target: "backports-25.11"
             upstream: "nixos-25.11"
+          - target: "backports-26.05"
+            upstream: "nixos-26.05"
 
     steps:
     - uses: actions/cache@v4
