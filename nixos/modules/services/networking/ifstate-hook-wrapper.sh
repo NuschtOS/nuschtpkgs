@@ -1,11 +1,11 @@
 unit_name() {
-  name="ifstate-hook-@hookName@"
+  local name="ifstate-hook-@hookName@"
 
-  if [[ "$IFS_NETNS" -ne "" ]]; then
+  if [[ "$IFS_NETNS" != "" ]]; then
     name="$name-$IFS_NETNS"
   fi
 
-  if [[ "$IFS_VRF" -ne "" ]]; then
+  if [[ "$IFS_VRF" != "" ]]; then
     name="$name-$IFS_VRF"
   fi
 
@@ -13,15 +13,16 @@ unit_name() {
 }
 
 start() {
+    local unit
     unit=$(unit_name)
 
     if systemctl is-active --quiet "$unit"; then
         exit "$IFS_RC_OK"
     fi
 
-    description="IfState Hook"
+    local description="IfState Hook"
 
-    args=(
+    local args=(
       '--quiet'
       '--no-block'
       "--unit=$unit"
@@ -36,7 +37,7 @@ start() {
     done
 
     if [[ -n "$IFS_NETNS" ]]; then
-      args+=("--property=NetworkNamespacePath=/var/netns/$IFS_NETNS")
+      args+=("--property=NetworkNamespacePath=/var/run/netns/$IFS_NETNS")
       description="$description Netns $IFS_NETNS"
     fi
 
@@ -48,12 +49,15 @@ start() {
     args+=("--description=$description @hookDescription@")
     args+=(@systemdRunArgs@)
 
-    systemd-run "${args[@]}"
-
-    exit "$IFS_RC_STARTED"
+    if systemd-run "${args[@]}"; then
+      exit "$IFS_RC_STARTED"
+    else
+      exit "$IFS_RC_ERROR"
+    fi
 }
 
 stop() {
+    local unit
     unit=$(unit_name)
 
     if ! systemctl is-active --quiet "$unit"; then
@@ -65,18 +69,24 @@ stop() {
 }
 
 check_start() {
+    local unit
     unit=$(unit_name)
+
     if systemctl is-active --quiet "$unit"; then
         exit "$IFS_RC_OK"
     fi
+
     exit "$IFS_RC_CHANGED"
 }
 
 check_stop() {
+    local unit
     unit=$(unit_name)
+
     if systemctl is-active --quiet "$unit"; then
         exit "$IFS_RC_CHANGED"
     fi
+
     exit "$IFS_RC_OK"
 }
 
