@@ -62,6 +62,9 @@ let
     postPatch = ''
       substituteInPlace libifstate/routing/__init__.py \
         --replace-fail '/usr/share/iproute2' '${iproute2}/share/iproute2'
+
+      substituteInPlace libifstate/hook/wrapper.sh \
+        --replace-fail ' ip ' ' ${lib.getExe' iproute2 "ip"} '
     ''
     + lib.optionalString withBpf ''
       substituteInPlace libifstate/bpf/ctypes.py \
