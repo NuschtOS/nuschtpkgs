@@ -154,6 +154,7 @@ in
       };
 
       hooks = lib.mkOption {
+        description = "Hooks spawn additional services on interface (de)configuration to control userspace network services.";
         type = lib.types.attrsOf (
           lib.types.submodule {
             options = {
@@ -209,6 +210,7 @@ in
       };
 
       hooks = lib.mkOption {
+        description = "Hooks spawn additional services on interface (de)configuration to control userspace network services.";
         type = lib.types.attrsOf (
           lib.types.submodule {
             options = {
@@ -222,6 +224,16 @@ in
               command = lib.mkOption {
                 type = lib.types.str;
                 description = "Command to run in the hook.";
+              };
+            };
+
+            config = {
+              systemdProps = {
+                After = commonServiceConfig.after;
+                Before = commonServiceConfig.before;
+                Conflicts = commonServiceConfig.conflicts;
+                Wants = commonServiceConfig.wants;
+                inherit (commonServiceConfig.unitConfig) DefaultDependencies;
               };
             };
           }
