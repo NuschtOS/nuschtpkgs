@@ -7,17 +7,17 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "rustfs-rc";
-  version = "0.1.18";
+  version = "0.1.20";
   __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "rustfs";
     repo = "cli";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-g+26a2hrCrexw+wi6sj+Yo0FAcPTtP+MzgK10IDr3bE=";
+    hash = "sha256-arANPm11/CYc9FrT1/jw5Virl+cOiKpwI2gh/zelSnk=";
   };
 
-  cargoHash = "sha256-qezRyz5+NC/4LAbqE2TpWZuy4fyjsXjcA+qP1uxaKHE=";
+  cargoHash = "sha256-fjx+W0y5nhbXYntmIlRBfxDqdHTYFmwyG+AEx1o9/j4=";
 
   passthru.updateScript = nix-update-script { };
 
