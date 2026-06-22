@@ -9895,6 +9895,8 @@ self: super: with self; {
 
   meshlabxml = callPackage ../development/python-modules/meshlabxml { };
 
+  meshpy = callPackage ../development/python-modules/meshpy { };
+
   meshtastic = callPackage ../development/python-modules/meshtastic { };
 
   meson = toPythonModule (
