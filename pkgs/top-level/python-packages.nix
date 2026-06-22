@@ -21037,6 +21037,8 @@ self: super: with self; {
 
   uwsgi-chunked = callPackage ../development/python-modules/uwsgi-chunked { };
 
+  uwuipy = callPackage ../development/python-modules/uwuipy { };
+
   uxsim = callPackage ../development/python-modules/uxsim { };
 
   vaa = callPackage ../development/python-modules/vaa { };
