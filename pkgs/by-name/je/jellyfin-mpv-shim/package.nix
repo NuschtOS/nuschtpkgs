@@ -33,6 +33,7 @@ python3Packages.buildPythonApplication rec {
     mpv
     python-mpv-jsonipc
     requests
+    tkinter
 
     # gui + mirror dependencies
     pillow
