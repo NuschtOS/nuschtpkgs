@@ -421,6 +421,7 @@ in
             "postgresql.target"
           ];
           wantedBy = [ "multi-user.target" ];
+          path = with pkgs; [ librsvg ];
           preStart =
             let
               versionString = "c3nav-${cfg.package.version}";
