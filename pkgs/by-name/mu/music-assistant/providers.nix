@@ -29,8 +29,10 @@
       ps: with ps; [
         aioaudiobookshelf
       ];
-    bandcamp = ps: [
-    ]; # missing bandcamp-async-api
+    bandcamp =
+      ps: with ps; [
+        bandcamp-async-api
+      ];
     bbc_sounds =
       ps: with ps; [
         pytz
