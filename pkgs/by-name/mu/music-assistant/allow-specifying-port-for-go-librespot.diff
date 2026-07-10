@@ -1,0 +1,12 @@
+diff --git a/music_assistant/providers/spotify_connect/go_librespot/backend.py b/music_assistant/providers/spotify_connect/go_librespot/backend.py
+index 34a152ada..8fd5e408a 100644
+--- a/music_assistant/providers/spotify_connect/go_librespot/backend.py
++++ b/music_assistant/providers/spotify_connect/go_librespot/backend.py
+@@ -285,6 +285,7 @@ def _write_config(self, source_ip: str | None) -> None:
+             "normalisation_disabled": not self._loudness_normalization,
+             "crossfade_duration": self._crossfade_ms,
+             "zeroconf_enabled": True,
++            "zeroconf_port": int(os.environ.get("MUSIC_ASSISTANT_SPOTIFY_CONNECT_ZEROCONF_PORT", "0")),
+             "credentials": {"type": "zeroconf", "zeroconf": {"persist_credentials": True}},
+             "server": {"enabled": True, "address": "127.0.0.1", "port": self._api_port},
+         }
