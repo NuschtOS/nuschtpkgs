@@ -1623,7 +1623,7 @@ in
           MemoryDenyWriteExecute =
             !(
               (builtins.any (mod: (mod.allowMemoryWriteExecute or false)) cfg.package.modules)
-              || (cfg.package == pkgs.openresty)
+              || (cfg.package.pname == "openresty")
             );
           RestrictRealtime = true;
           RestrictSUIDSGID = true;
