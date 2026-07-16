@@ -2,13 +2,26 @@
 
 This is a [Nixpkgs](https://github.com/NixOS/nixpkgs) fork where we manually backport PRs that are *relevant to us*.
 
-| Name | Upstream Branch | Description |
-|---|---|---|
-| nixos-unstable | nixos-unstable | Includes backports required for running NixOS-Modules. |
-| nixos-25.05 | nixos-25.05 | Includes backports required for running NixOS-Modules. |
-| backports-25.05 | nixos-25.05 | Includes backports that are *relevant to us*. Not intended for outside use. |
-| backports-25.11 | nixos-25.11 | Includes backports that are *relevant to us*. Not intended for outside use. | 
-| backports-26.05 | nixos-26.05 | Includes backports that are *relevant to us*. Not intended for outside use. | 
+The following branches are available. 
+- `backports-26.05`
+- `backports-25.11` 
+- `backports-25.05` 
+- `backports-24.11` 
+- `backports-24.05` 
+
+The currently active branches get automatically rebased daily onto upstream.
+
+## Usage
+
+This repo can be used as the nixpkgs input as follows, replace `backports-26.05` with your desired branch name:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "git+https://elbforge.org/NuschtOS/nuschtpkgs/?ref=backports-26.05&shallow=1";
+  };
+}
+```
 
 ## Contact
 
