@@ -722,9 +722,6 @@ in
         # run migrations/init the database
         ${exe} migrate
 
-        # update all hooks' binary paths
-        ${exe} admin regenerate hooks
-
         # update command option in authorized_keys
         if [ -r ${cfg.stateDir}/.ssh/authorized_keys ]
         then
