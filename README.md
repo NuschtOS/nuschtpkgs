@@ -23,6 +23,17 @@ This repo can be used as the nixpkgs input as follows, replace `backports-26.05`
 }
 ```
 
+or
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NuschtOS/nuschtpkgs/backports-26.05";
+  };
+}
+```
+
+
 ## Contact
 
 For bugs and issues please open an issue in this repository.
