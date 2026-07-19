@@ -8,20 +8,15 @@
 }:
 
 stdenv.mkDerivation {
-  pname = "zenpower5";
-  version = "0.5.0-unstable-2026-01-07";
+  pname = "zenpower";
+  version = "0-unstable-2026-10-11";
 
   src = fetchFromGitHub {
-    owner = "mattkeenan";
-    repo = "zenpower5";
-    rev = "66871d8e59c3741e00de2eb1f61c3b64263ed10b";
-    hash = "sha256-g0zVTDi5owa6XfQN8vlFwGX+gpRIg+5q1F4EuxAk9Sk=";
+    owner = "thor2002ro";
+    repo = "zenpower";
+    rev = "b39014784c664dd3fc33ee8c425b135f935e62c0";
+    hash = "sha256-CNbtnXddx2Iv17u1xRz9TdKQw6sCF1fpquWrsYdWSr0=";
   };
-
-  patches = [
-    # https://github.com/mattkeenan/zenpower5/pull/16
-    ./kernel-7.2-comp.patch
-  ];
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
 
@@ -47,7 +42,7 @@ stdenv.mkDerivation {
 
   meta = {
     description = "Linux kernel driver for reading temperature, voltage(SVI2), current(SVI2) and power(SVI2) for AMD Zen family CPUs";
-    homepage = "https://github.com/mattkeenan/zenpower5";
+    homepage = "https://github.com/thor2002ro/zenpower";
     license = lib.licenses.gpl2Plus;
     maintainers = with lib.maintainers; [
       alexbakker
