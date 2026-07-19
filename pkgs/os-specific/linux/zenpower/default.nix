@@ -7,16 +7,14 @@
 
 stdenv.mkDerivation rec {
   pname = "zenpower";
-  version = "unstable-2025-12-20";
+  version = "unstable-2026-07-05";
 
   src = fetchFromGitHub {
-    owner = "AliEmreSenel";
-    repo = "zenpower3";
-    rev = "dc4f1e2d2f5e26ad5b314497485419cb240e7134";
-    hash = "sha256-NvCBog1rAAjbhT9dMOjsmio6lVZ9h36XvOiE7znJdTo=";
+    owner = "thor2002ro";
+    repo = "zenpower";
+    rev = "c4f0bcd775a1c19fa5474ed80ec1d5d976b2825e";
+    hash = "sha256-fAoxB5RX/sOsYxduIvj4Xs/wM5TWrg0aIeAfDNr2Slw=";
   };
-
-  hardeningDisable = [ "pic" ];
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
 
