@@ -2,7 +2,9 @@
   lib,
   stdenv,
   rustPlatform,
+  applyPatches,
   fetchFromGitHub,
+  fetchpatch,
   installShellFiles,
   pkg-config,
   openssl,
@@ -17,11 +19,20 @@ let
 
   version = "9.0.1";
 
-  src = fetchFromGitHub {
-    owner = "ikatson";
-    repo = "rqbit";
-    rev = "v${version}";
-    hash = "sha256-biF8AtHl2aYdxmuu0UNqN3Id2R0WoCOb5nKpdhCnKNY=";
+  src = applyPatches {
+    src = fetchFromGitHub {
+      owner = "ikatson";
+      repo = "rqbit";
+      rev = "v${version}";
+      hash = "sha256-biF8AtHl2aYdxmuu0UNqN3Id2R0WoCOb5nKpdhCnKNY=";
+    };
+
+    patches = [
+      (fetchpatch {
+        url = "https://github.com/ikatson/rqbit/commit/c8e38a0b5e8a5f2b75d589b7a8597b6f3e1b00d9.patch";
+        hash = "sha256-6UghcH62DRWdtsO/a2JBV3890eJHiPWND9e0izb7CBY=";
+      })
+    ];
   };
 
   rqbit-webui = buildNpmPackage {
