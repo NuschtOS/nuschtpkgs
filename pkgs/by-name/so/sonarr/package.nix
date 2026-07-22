@@ -78,6 +78,11 @@ let
         url = "https://github.com/Sonarr/Sonarr/commit/7e627f69470b1a1d20560e31968cf281e711cc2e.patch";
         hash = "sha256-7s0p32dR9MtKMchByPhvOtQrUVO9AmUmtP3sRrq50+I=";
       })
+      (fetchpatch {
+        name = "rqbit-categories-path";
+        url = "https://github.com/Sonarr/Sonarr/commit/ee3f74d49ce5f2b17a14f56eb2247637b42c813a.patch";
+        hash = "sha256-KjGn76j1AzuTi3gDxvqopFFZwCtzp9etZLaspq6QIUw=";
+      })
     ];
   };
   rid = dotnetCorePackages.systemToDotnetRid stdenvNoCC.hostPlatform.system;
