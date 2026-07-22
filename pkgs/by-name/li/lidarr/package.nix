@@ -2,6 +2,7 @@
   lib,
   stdenvNoCC,
   fetchFromGitHub,
+  fetchpatch,
   buildDotnetModule,
   dotnetCorePackages,
   sqlite,
@@ -31,6 +32,28 @@ let
     postPatch = ''
       mv src/NuGet.config NuGet.Config
     '';
+    patches = [
+      (fetchpatch {
+        name = "rqbit";
+        url = "https://github.com/Sonarr/Sonarr/commit/37cb978f182dc3f04a10b45ba682473b1119f16a.patch";
+        hash = "sha256-c0NkZ/XeqxL+Ld6dLexVqKxt77SPuOBqKTgUa8wYWQw=";
+      })
+      (fetchpatch {
+        name = "rqbit-fix-out-path";
+        url = "https://github.com/Sonarr/Sonarr/commit/7e627f69470b1a1d20560e31968cf281e711cc2e.patch";
+        hash = "sha256-7s0p32dR9MtKMchByPhvOtQrUVO9AmUmtP3sRrq50+I=";
+      })
+      (fetchpatch {
+        name = "rqbit-categories-path";
+        url = "https://github.com/Sonarr/Sonarr/commit/ee3f74d49ce5f2b17a14f56eb2247637b42c813a.patch";
+        hash = "sha256-KjGn76j1AzuTi3gDxvqopFFZwCtzp9etZLaspq6QIUw=";
+      })
+      (fetchpatch {
+        name = "rqbit-categories-path";
+        url = "https://github.com/Lidarr/Lidarr/commit/754882271b27a0dd61375e19505ceac1eb40a121.patch";
+        hash = "sha256-2zbg3A4DBfjZ3KeVCqfrEwiBKJpgrD4vMxtEZbBsPdw=";
+      })
+    ];
   };
   rid = dotnetCorePackages.systemToDotnetRid stdenvNoCC.hostPlatform.system;
 in
