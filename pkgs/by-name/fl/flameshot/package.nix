@@ -12,7 +12,6 @@
   nix-update-script,
   enableWlrSupport ? !stdenv.hostPlatform.isDarwin,
   enableMonochromeIcon ? false,
-  fetchpatch,
   wrapGAppsHook3,
 }:
 
@@ -49,11 +48,6 @@ stdenv.mkDerivation (finalAttrs: {
   patches = [
     ./load-missing-deps.patch
     ./macos-build.patch
-    (fetchpatch {
-      name = "CVE-2026-62294.patch";
-      url = "https://github.com/flameshot-org/flameshot/commit/936716b8d8b7052be461c3d5e2f88492b6eb3b96.patch";
-      hash = "sha256-bhJ6fQJXkRoUME8juj6/8bQAO5V50tJfV0wcJfIoPg0=";
-    })
   ];
 
   nativeBuildInputs = [
