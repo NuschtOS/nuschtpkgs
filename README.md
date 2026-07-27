@@ -18,7 +18,7 @@ This repo can be used as the nixpkgs input as follows, replace `backports-26.05`
 ```nix
 {
   inputs = {
-    nixpkgs.url = "git+https://elbforge.org/NuschtOS/nuschtpkgs/?ref=backports-26.05&shallow=1";
+    nixpkgs.url = "git+https://elbforge.org/NuschtOS/nuschtpkgs.git?ref=backports-26.05&shallow=1";
   };
 }
 ```
