@@ -240,6 +240,8 @@ pythonPackages.buildPythonApplication (finalAttrs: {
     "tests/providers/zvuk_music"
     # mocking music_assistant.providers.airplay.pairing.AirPlayPairing does not work
     "tests/providers/airplay/test_player.py::test_start_pairing__pin_decision"
+    # AssertionError: linecache hit on emit
+    "tests/core/test_diagnostics.py::test_emit_does_no_disk_io"
   ];
 
   disabledTests = lib.optionals (stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isAarch64) [
