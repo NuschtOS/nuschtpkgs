@@ -2743,12 +2743,7 @@ with pkgs;
     withDpi = false;
   };
 
-  netcat = libressl.nc.overrideAttrs (old: {
-    meta = old.meta // {
-      description = "Utility which reads and writes data across network connections — LibreSSL implementation";
-      mainProgram = "nc";
-    };
-  });
+  netcat = callPackage ../by-name/ne/netcat-openbsd/package.nix { };
 
   libnma-gtk4 = libnma.override { withGtk4 = true; };
 
