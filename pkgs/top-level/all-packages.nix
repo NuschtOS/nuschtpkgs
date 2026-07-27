@@ -2322,6 +2322,8 @@ with pkgs;
     withDpi = false;
   };
 
+  netcat = callPackage ../by-name/ne/netcat-openbsd/package.nix { };
+
   libnma-gtk4 = libnma.override { withGtk4 = true; };
 
   inherit (callPackages ../servers/nextcloud { })
