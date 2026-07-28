@@ -1476,6 +1476,7 @@ in
   restic-rest-server = runTest ./restic-rest-server.nix;
   retroarch = runTest ./retroarch.nix;
   ringboard = runTest ./ringboard.nix;
+  ripe-atlas-probe = runTest ./ripe-atlas-probe.nix;
   rke2 = import ./rancher {
     inherit pkgs;
     inherit (pkgs) lib;
