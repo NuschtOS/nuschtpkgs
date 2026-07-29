@@ -1,0 +1,73 @@
+From 96448f8c9da2d4877a081bb5fb8127fd7839a3f2 Mon Sep 17 00:00:00 2001
+From: Marcel <me@m4rc3l.de>
+Date: Wed, 29 Jul 2026 15:09:11 +0200
+Subject: [PATCH] clippboard: apply gnome workaround for any wayland session
+
+---
+ src/widgets/capture/capturewidget.cpp | 31 ++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
+
+diff --git a/src/widgets/capture/capturewidget.cpp b/src/widgets/capture/capturewidget.cpp
+index 73222e3d..a20205b3 100644
+--- a/src/widgets/capture/capturewidget.cpp
++++ b/src/widgets/capture/capturewidget.cpp
+@@ -13,6 +13,7 @@
+ #include "config/cacheutils.h"
+ #include "config/generalconf.h"
+ #include "core/flameshot.h"
++#include "core/flameshotdaemon.h"
+ #include "core/qguiappcurrentscreen.h"
+ #include "tools/copy/copytool.h"
+ #include "utils/abstractlogger.h"
+@@ -625,28 +626,38 @@ void CaptureWidget::uncheckActiveTool()
+ void CaptureWidget::closeEvent(QCloseEvent* event)
+ {
+ #if !(defined(Q_OS_MACOS) || defined(Q_OS_WIN))
+-    /* GNOME copy problem workaround, copy
+-       operation seems to work only when there
+-       is a visible window to retrieve the
+-       data from. On GNOME, the GUI should
+-       handle the copy operation, not the
+-       daemon.
++    /* Wayland copy problem workaround. A transient `flameshot gui` process
++       can only place an image on the clipboard for as long as it stays alive:
++       the copy is either shipped over DBus to a daemon that may not exist, or
++       set on the plain Qt clipboard whose data source dies with the window.
++       Either way the offer is gone before the compositor (or a clipboard
++       manager such as wl-clip-persist) can read it. Copying locally and
++       keeping the window alive until the data is fetched fixes this on every
++       wlroots/Wayland compositor (GNOME, Sway, River, Hyprland, cosmic, ...).
+     */
+     const bool copyRequested =
+       (m_context.request.tasks() & CaptureRequest::COPY);
+ 
+     if (m_captureDone && copyRequested) {
+         DesktopInfo desktopInfo;
+-        const bool needGnomeWorkaround =
++
++        // When there is no in-process daemon, copyToClipboard() would ship the
++        // image over DBus to a (possibly absent) daemon and this transient
++        // process would then exit, destroying the clipboard offer before any
++        // client reads it. Copy locally and keep the window alive instead.
++        // KDE is excluded: there the KSystemClipboard/daemon path owns the
++        // clipboard without a visible window.
++        const bool needWaylandWorkaround =
+           desktopInfo.waylandDetected() &&
+-          desktopInfo.windowManager() == DesktopInfo::GNOME;
++          desktopInfo.windowManager() != DesktopInfo::KDE &&
++          FlameshotDaemon::instance() == nullptr;
+ 
+-        if (needGnomeWorkaround && !m_clipboardWorkaroundDone) {
++        if (needWaylandWorkaround && !m_clipboardWorkaroundDone) {
+             event->ignore();
+             m_clipboardWorkaroundDone = true;
+             m_context.request.removeTask(CaptureRequest::COPY);
+             AbstractLogger::info()
+-              << "GNOME Wayland detected; keeping capture window alive until "
++              << "Wayland detected; keeping capture window alive until "
+                  "clipboard data is fetched.";
+             saveToClipboardGnomeWorkaround(pixmap(), this);
+             return;
+-- 
+2.54.0
+
