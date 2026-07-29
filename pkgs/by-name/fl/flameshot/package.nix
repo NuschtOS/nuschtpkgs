@@ -48,6 +48,7 @@ stdenv.mkDerivation (finalAttrs: {
   patches = [
     ./load-missing-deps.patch
     ./macos-build.patch
+    ./0001-clippboard-apply-gnome-workaround-for-any-wayland-se.patch
   ];
 
   nativeBuildInputs = [
