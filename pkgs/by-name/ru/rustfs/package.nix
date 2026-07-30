@@ -6,14 +6,14 @@
   pnpm,
   pnpmConfigHook,
   nodejs,
-  rustPackages_1_96,
+  rustPackages_1_97,
   protobuf,
   cacert,
   nixosTests,
 }:
 
 let
-  inherit (rustPackages_1_96) rustPlatform;
+  inherit (rustPackages_1_97) rustPlatform;
   console = stdenv.mkDerivation (finalAttrs: {
     pname = "rustfs-console";
     version = "0.1.17";
@@ -52,14 +52,14 @@ let
 in
 rustPlatform.buildRustPackage rec {
   pname = "rustfs";
-  version = "1.0.0-beta.11";
+  version = "1.0.0-beta.12";
   __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "rustfs";
     repo = "rustfs";
     tag = version;
-    hash = "sha256-arwTgRwUr7/mgobtxnkhxD1mu4LrrEqKnrewacpc6ro=";
+    hash = "sha256-u5DhPg0e42IvP5lNyLVh2kBQLEYQz3J5crnTs8mfFms=";
   };
 
   postPatch = ''
@@ -67,7 +67,7 @@ rustPlatform.buildRustPackage rec {
     cp -rL ${console} ./rustfs/static
   '';
 
-  cargoHash = "sha256-cMOPQ70hGFJEdYkrizgrwJOfga9UvqJRPdQbX/Whhuk=";
+  cargoHash = "sha256-5QpSWlGN0zV6BW6joRyP+Ly6QEVTkHTJUSBBnyYx+EQ=";
 
   nativeBuildInputs = [
     protobuf
