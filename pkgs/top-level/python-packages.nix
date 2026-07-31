@@ -15394,6 +15394,8 @@ self: super: with self; {
 
   pystiebeleltron = callPackage ../development/python-modules/pystiebeleltron { };
 
+  pystitch = callPackage ../development/python-modules/pystitch { };
+
   pystray = callPackage ../development/python-modules/pystray { };
 
   pysubs2 = callPackage ../development/python-modules/pysubs2 { };
