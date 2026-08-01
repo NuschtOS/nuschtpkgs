@@ -7,17 +7,17 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "sdocx2pdf";
-  version = "0.3.0";
+  version = "0.3.2";
   __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "squ1dd13";
     repo = "sdocx2pdf";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-sDYl2dhnayoyLbqx/SzMXvZ7m1bFZo8ufoQ7Lwpqf0Y=";
+    hash = "sha256-vxOYvXWMEQIqkBynAv8oq7jkmaf7ET0Y1RYJJ+/CsEM=";
   };
 
-  cargoHash = "sha256-rwhC6AITvrhIyqk2b1ew1Pc/0pn4c+LlFuMcCpwqipc=";
+  cargoHash = "sha256-9XVArPSxdk6ZjJiKFjrp20Tk20CgP0L+jkyqSQaBLRw=";
 
   passthru.updateScript = nix-update-script { };
 
