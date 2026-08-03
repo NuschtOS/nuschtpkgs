@@ -35,7 +35,7 @@ buildPythonPackage rec {
   dependencies = [ psutil ];
 
   nativeCheckInputs = [
-    netcat.nc
+    netcat
     ps
     python-daemon
     pytest-rerunfailures
