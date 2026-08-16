@@ -251,7 +251,9 @@ in
             backend = lib.mkOption {
               type = with lib.types; nullOr str;
               default = "redis+socket://${config.services.redis.servers.pretalx.unixSocket}?virtual_host=1";
-              defaultText = lib.literalExpression "redis+socket://''${config.services.redis.servers.pretalx.unixSocket}?virtual_host=1";
+              defaultText = lib.literalExpression ''
+                "redis+socket://''${config.services.redis.servers.pretalx.unixSocket}?virtual_host=1"
+              '';
               description = ''
                 URI to the celery backend used for the asynchronous job queue.
               '';
@@ -260,7 +262,9 @@ in
             broker = lib.mkOption {
               type = with lib.types; nullOr str;
               default = "redis+socket://${config.services.redis.servers.pretalx.unixSocket}?virtual_host=2";
-              defaultText = lib.literalExpression "redis+socket://''${config.services.redis.servers.pretalx.unixSocket}?virtual_host=2";
+              defaultText = lib.literalExpression ''
+                "redis+socket://''${config.services.redis.servers.pretalx.unixSocket}?virtual_host=2"
+              '';
               description = ''
                 URI to the celery broker used for the asynchronous job queue.
               '';
@@ -293,7 +297,9 @@ in
             url = lib.mkOption {
               type = lib.types.str;
               default = "https://${cfg.nginx.domain}";
-              defaultText = lib.literalExpression "https://\${config.services.pretalx.nginx.domain}";
+              defaultText = lib.literalExpression ''
+                "https://''${config.services.pretalx.nginx.domain}"
+              '';
               example = "https://talks.example.com";
               description = ''
                 The base URI below which your pretalx instance will be reachable.
