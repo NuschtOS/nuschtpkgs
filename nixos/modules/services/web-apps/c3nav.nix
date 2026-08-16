@@ -477,6 +477,7 @@ in
     users = {
       groups.${cfg.group} = { };
       users.${cfg.user} = {
+        extraGroups = [ config.services.redis.servers.c3nav.group ];
         isSystemUser = true;
         inherit (cfg) group;
       };
