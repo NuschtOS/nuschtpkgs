@@ -7,7 +7,6 @@
 
 with lib;
 let
-
   cfg = config.services.smokeping;
   smokepingHome = "/var/lib/smokeping";
   smokepingPidDir = "/run";
@@ -44,9 +43,8 @@ let
       cfg.config;
 
   configPath = pkgs.writeText "smokeping.conf" configFile;
-  cgiHome = pkgs.writeScript "smokeping.fcgi" ''
-    #!${pkgs.bash}/bin/bash
-    ${cfg.package}/bin/smokeping_cgi /etc/smokeping.conf
+  cgiHome = pkgs.writeShellScript "smokeping.fcgi" ''
+    exec ${cfg.package}/bin/smokeping_cgi /etc/smokeping.conf
   '';
 in
 
@@ -82,10 +80,10 @@ in
       };
       cgiUrl = mkOption {
         type = types.str;
-        default = "http://${cfg.hostName}/smokeping.cgi";
-        defaultText = literalExpression ''"http://''${hostName}/smokeping.cgi"'';
-        example = "https://somewhere.example.com/smokeping.cgi";
-        description = "URL to the smokeping cgi.";
+        default = "http://${cfg.hostName}/smokeping.fcgi";
+        defaultText = literalExpression ''"http://''${hostName}/smokeping.fcgi"'';
+        example = "https://somewhere.example.com/smokeping.fcgi";
+        description = "URL to the smokeping fcgi.";
       };
       config = mkOption {
         type = types.nullOr types.lines;
@@ -138,7 +136,7 @@ in
         default = config.networking.fqdn;
         defaultText = literalExpression "config.networking.fqdn";
         example = "somewhere.example.com";
-        description = "DNS name for the urls generated in the cgi.";
+        description = "DNS name for the urls generated in the fcgi.";
       };
       imgUrl = mkOption {
         type = types.str;
@@ -146,7 +144,7 @@ in
         defaultText = literalExpression ''"cache"'';
         example = "https://somewhere.example.com/cache";
         description = ''
-          Base url for images generated in the cgi.
+          Base url for images generated in the fcgi.
 
           The default is a relative URL to ensure it works also when e.g. forwarding
           the GUI port via SSH.
@@ -160,7 +158,7 @@ in
         ];
         default = "relative";
         example = "absolute";
-        description = "DNS name for the urls generated in the cgi.";
+        description = "DNS name for the urls generated in the fcgi.";
       };
       mailHost = mkOption {
         type = types.str;
@@ -242,12 +240,12 @@ in
       };
       probeConfig = mkOption {
         type = types.lines;
-        default = ''
+        default = lib.optionalString cfg.localProbes ''
           + FPing
           binary = ${config.security.wrapperDir}/fping
         '';
         defaultText = literalExpression ''
-          '''
+          lib.optionalString cfg.localProbes '''
             + FPing
             binary = ''${config.security.wrapperDir}/fping
           '''
@@ -294,6 +292,9 @@ in
         default = true;
         description = "Enable a smokeping web interface";
       };
+      localProbes = (mkEnableOption "local fping binaries") // {
+        default = true;
+      };
     };
 
   };
@@ -305,31 +306,35 @@ in
         message = "services.smokeping: sendmail and Mailhost cannot both be enabled.";
       }
     ];
-    security.wrappers = {
-      fping = {
-        setuid = true;
-        owner = "root";
-        group = "root";
-        source = "${pkgs.fping}/bin/fping";
-      };
+
+    security.wrappers.fping = lib.mkIf cfg.localProbes {
+      setuid = true;
+      owner = "root";
+      group = "root";
+      source = lib.getExe pkgs.fping;
     };
+
     environment.etc."smokeping.conf".source = configPath;
-    environment.systemPackages = [ pkgs.fping ];
-    users.users.${cfg.user} = {
-      isNormalUser = false;
-      isSystemUser = true;
-      group = cfg.user;
-      description = "smokeping daemon user";
-      home = smokepingHome;
-    };
 
-    users.users.${config.services.nginx.user} = mkIf cfg.webService {
-      extraGroups = [
-        cfg.user # # user == group in this module
-      ];
-    };
+    users = {
+      users = {
+        ${cfg.user} = {
+          isNormalUser = false;
+          isSystemUser = true;
+          group = cfg.user;
+          description = "smokeping daemon user";
+          home = smokepingHome;
+        };
 
-    users.groups.${cfg.user} = { };
+        ${config.services.nginx.user} = mkIf cfg.webService {
+          extraGroups = [
+            cfg.user # # user == group in this module
+          ];
+        };
+      };
+
+      groups.${cfg.user} = { };
+    };
 
     systemd.services.smokeping = {
       reloadTriggers = [ configPath ];
@@ -357,27 +362,28 @@ in
       "Z ${smokepingHome} 0750 ${cfg.user} ${cfg.user}"
     ];
 
-    # use nginx to serve the smokeping web service
-    services.fcgiwrap.instances.smokeping = mkIf cfg.webService {
-      process.user = cfg.user;
-      process.group = cfg.user;
-      socket = { inherit (config.services.nginx) user group; };
-    };
-    services.nginx = mkIf cfg.webService {
-      enable = true;
-      virtualHosts."smokeping" = {
-        serverName = mkDefault cfg.host;
-        locations."/" = {
-          root = smokepingHome;
-          index = "smokeping.fcgi";
-        };
-        locations."/smokeping.fcgi" = {
-          extraConfig = ''
-            include ${config.services.nginx.package}/conf/fastcgi_params;
-            fastcgi_pass unix:${config.services.fcgiwrap.instances.smokeping.socket.address};
-            fastcgi_param SCRIPT_FILENAME ${smokepingHome}/smokeping.fcgi;
-            fastcgi_param DOCUMENT_ROOT ${smokepingHome};
-          '';
+    services = {
+      # use nginx to serve the smokeping web service
+      fcgiwrap.instances.smokeping = mkIf cfg.webService {
+        process.user = cfg.user;
+        process.group = cfg.user;
+        socket = { inherit (config.services.nginx) user group; };
+      };
+      nginx = mkIf cfg.webService {
+        enable = true;
+        virtualHosts.${cfg.host}.locations = {
+          "/" = {
+            root = smokepingHome;
+            index = "smokeping.fcgi";
+          };
+          "/smokeping.fcgi" = {
+            extraConfig = ''
+              include ${config.services.nginx.package}/conf/fastcgi_params;
+              fastcgi_pass unix:${config.services.fcgiwrap.instances.smokeping.socket.address};
+              fastcgi_param SCRIPT_FILENAME ${smokepingHome}/smokeping.fcgi;
+              fastcgi_param DOCUMENT_ROOT ${smokepingHome};
+            '';
+          };
         };
       };
     };
