@@ -4,7 +4,7 @@
   nodejs-slim_22,
   bundlerEnv,
   nixosTests,
-  yarn-berry_4,
+  yarn-berry_4_18,
   callPackage,
   ruby_3_3,
   writeShellScript,
@@ -24,7 +24,7 @@
 let
   nodejs-slim = nodejs-slim_22;
   ruby = ruby_3_3;
-  yarn-berry = yarn-berry_4.override { nodejs = nodejs-slim; };
+  yarn-berry = yarn-berry_4_18.override { nodejs = nodejs-slim; };
 in
 
 stdenv.mkDerivation rec {
