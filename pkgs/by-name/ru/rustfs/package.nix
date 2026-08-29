@@ -19,7 +19,7 @@ let
   inherit (rustPackages_1_97) rustPlatform;
   console = stdenv.mkDerivation (finalAttrs: {
     pname = "rustfs-console";
-    version = "0.1.22";
+    version = "0.1.23";
     __structuredAttrs = true;
     __darwinAllowLocalNetworking = true;
 
@@ -27,7 +27,7 @@ let
       owner = "rustfs";
       repo = "console";
       tag = "v${finalAttrs.version}";
-      hash = "sha256-qdF+dUjvbIoVJxXES9K4K4Z0H0kKMgRzQ8tHnGQxybw=";
+      hash = "sha256-u6wNtV2OmHRAWRF3i8EGbnfbBWHH/y0HRad4BlzGZKk=";
     };
 
     pnpmDeps = fetchPnpmDeps {
@@ -55,14 +55,14 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "rustfs";
-  version = "1.0.0-rc.3";
+  version = "1.0.0-rc.4";
   __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "rustfs";
     repo = "rustfs";
     tag = finalAttrs.version;
-    hash = "sha256-vh4jw7sPndqMXeU/fWavM2zT5D0p4KZcfUxWnGSc2Yg=";
+    hash = "sha256-XF7YrmVCPmJnRTA0KzwIbnhc6ENmr51Z0LMlzJZ5JmM=";
   };
 
   postPatch = ''
@@ -70,7 +70,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     cp -rL ${finalAttrs.console} ./rustfs/static
   '';
 
-  cargoHash = "sha256-u+wyvJEv0rzGt02bvexHXEUl1fkZlMwCoeSWI3Gd1fk=";
+  cargoHash = "sha256-mmOINLCioI6QvVY+osKukCtYdLkNq6QtJHCQp0o/CQ4=";
 
   nativeBuildInputs = [
     protobuf
@@ -94,6 +94,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # tests share global state and fail depending on execution order,
   # upstream uses nexttest to run tests in separate processes
   useNextest = true;
+
+  # otherwise spike of 80GB memory
+  dontUseCargoParallelTests = true;
 
   passthru = {
     tests = {
