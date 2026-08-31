@@ -5007,6 +5007,8 @@ self: super: with self; {
 
   django-vite = callPackage ../development/python-modules/django-vite { };
 
+  django-vite-plugin = callPackage ../development/python-modules/django-vite-plugin { };
+
   django-vpg = callPackage ../development/python-modules/django-vpg { };
 
   django-vtasks = callPackage ../development/python-modules/django-vtasks { };
