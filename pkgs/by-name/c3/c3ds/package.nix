@@ -2,63 +2,43 @@
   python3Packages,
   lib,
   fetchFromGitHub,
-  applyPatches,
   nixosTests,
 }:
 
 let
-  inherit (python3Packages) pkgs;
-
-  # Exposed via passthru so the NixOS module can build a pythonEnv that
-  # bundles c3ds + daphne together.
-  pythonPackages = python3Packages;
-
-  src = "${applyPatches {
-    src = fetchFromGitHub {
-      owner = "scientress";
-      repo = "c3ds";
-      rev = "3a667cb23dec1a35e5ba79a20bf791eccb38fc88";
-      hash = "sha256-56rmXWr+LGzTEGlYkSVMyNEGG+O5SkhVEQ6IzijN5Aw=";
-    };
-
-    patches = [
-      ./0001-pyproject-init.patch
-      ./0002-c3ds-fix-frontend.patch
-      ./0003-use-sass-not-dart-sass.patch
-      ./0004-settings-base-dir.patch
-      ];
-  }}/src/";
+  src = fetchFromGitHub {
+    # Temporarily pinned to a fork; homepage below stays on the upstream project.
+    #owner = "scientress";
+    owner = "MarcelCoding";
+    repo = "c3ds";
+    rev = "6a043895350ca632201797a31341486445ae9e71";
+    hash = "sha256-RqWij6OplV/PJ5cSsYAllE8fZg8MTvh0aZtbSD2TW9s=";
+  } + "/src/";
 
   # Runtime dependencies; shared between the python package and the
   # build-time python environment of the frontend derivation.
   deps =
     with python3Packages;
     [
-      celery
       channels-redis
       channels
       csscompressor
       daphne
       django-compressor
       django-environ
-      django-filter
       django-libsass
-      django-ninja
-      django-prometheus
       django-vite-plugin
       django
       hiredis
-      pillow
-      prometheus-client
       psycopg
-      qrcode
       redis
       requests
       social-auth-app-django
     ]
+    # pyproject asks for psycopg[binary]; `c` is the equivalent that builds from source.
     ++ psycopg.optional-dependencies.c;
 
-  frontend = pkgs.callPackage ./frontend.nix {
+  frontend = python3Packages.callPackage ./frontend.nix {
     inherit src;
     pythonEnv = python3Packages.python.buildEnv.override { extraLibs = deps; };
   };
@@ -66,7 +46,7 @@ let
   in
    python3Packages.buildPythonApplication (finalAttrs: {
     pname = "c3ds";
-    version = "0-unstable-2025-12-29";
+    version = "0-unstable-2026-09-04";
 
       inherit src;
 
@@ -85,6 +65,20 @@ let
     # collectstatic only needs it to exist.
     env.DJANGO_SECRET_KEY = "c3ds-nix-build";
 
+    doCheck = true;
+
+    # Django's own test runner. buildPythonPackage has no checkPhase of its own and maps this
+    # one onto installCheckPhase, so it runs against the installed package with the source tree
+    # still the working directory. Dev settings keep the run self-contained; production wires up
+    # manifest static storage and offline compression the tests have no reason to depend on.
+    checkPhase = ''
+      runHook preCheck
+
+      ${python3Packages.python.interpreter} manage.py test c3ds --settings=c3ds.settings.dev
+
+      runHook postCheck
+    '';
+
     postInstall = ''
       # Collect the app static files into static.dist (which already contains
       # the vite output).
@@ -96,8 +90,8 @@ let
     '';
 
     passthru = {
+      pythonPackages = python3Packages;
       inherit
-        pythonPackages
         frontend
         deps
         ;
