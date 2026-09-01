@@ -105,6 +105,12 @@ in
       description = "Group under which c3ds should run.";
     };
 
+    manage = lib.mkOption {
+      type = lib.types.package;
+      description = "The `c3ds-manage` wrapper that sources environment files and runs c3ds as the configured user.";
+      apply = v: v;
+    };
+
     environmentFiles = lib.mkOption {
       description = ''
         Environment files that allow passing secret configuration values.
@@ -318,6 +324,8 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ c3dsManageWrapper ];
 
+    services.c3ds.manage = c3dsManageWrapper;
+
     services = {
       nginx = lib.mkIf cfg.nginx.enable {
         enable = true;
@@ -436,7 +444,7 @@ in
             version="$(cat "$versionFile" 2>/dev/null || echo 0)"
 
             if [[ "$version" != "${cfg.package.version}" ]]; then
-              ${lib.getExe' pythonEnv "c3ds"} migrate
+              ${cfg.manage}/bin/c3ds-manage migrate
 
               echo "${cfg.package.version}" > "$versionFile"
             fi

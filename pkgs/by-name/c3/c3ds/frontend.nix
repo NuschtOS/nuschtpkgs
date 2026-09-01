@@ -1,10 +1,12 @@
-{
-  stdenv,
-  lib,
-  nodejs_22,
-  yarn-berry_4,
-  src,
-  pythonEnv,
+{ stdenv
+, lib
+, nodejs
+, pnpm
+, fetchPnpmDeps
+, pnpmConfigHook
+, src
+, pythonEnv
+,
 }:
 
 # Builds the c3ds frontend (Vue 3 + Vite) into `static.dist/`.
@@ -25,26 +27,21 @@ stdenv.mkDerivation (finalAttrs: {
 
   inherit src;
 
-  # Checksums of the platform-optional packages (e.g. the esbuild and
-  # sass-embedded binaries for other architectures) that yarn does not record
-  # in the lockfile. Regenerate with:
-  #   nix run .#yarn-berry_4-fetcher.yarn-berry-fetcher missing-hashes src/yarn.lock
-  missingHashes = ./missing-hashes.json;
-
-  offlineCache = yarn-berry_4.fetchYarnBerryDeps {
-    inherit (finalAttrs) src missingHashes;
-        hash = "sha256-a9p9/q35ch20hKNET6wZFubRz06mV+eoxZFI/HW4t0g=";
+  pnpmDeps = fetchPnpmDeps {
+    inherit (finalAttrs) pname src;
+    fetcherVersion = 4;
+    hash = "sha256-WatMwyy8VRE9dwI0B4JQ2YPDmfEoYHXJmdIxtTzUCeo=";
   };
 
   nativeBuildInputs = [
-    nodejs_22
-    yarn-berry_4
-    yarn-berry_4.yarnBerryConfigHook
+    nodejs
+    pnpm
+    pnpmConfigHook
     pythonEnv
   ];
 
   # for patchShebangs of node_modules build scripts
-  buildInputs = [ nodejs_22 ];
+  buildInputs = [ nodejs ];
 
   env = {
     # The vite plugin imports the production settings, which demand a secret.
@@ -56,7 +53,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildPhase = ''
     runHook preBuild
-    yarn build
+    pnpm run build
     runHook postBuild
   '';
 

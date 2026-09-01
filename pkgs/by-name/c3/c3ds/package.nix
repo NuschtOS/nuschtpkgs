@@ -15,17 +15,18 @@ let
 
   src = "${applyPatches {
     src = fetchFromGitHub {
-      owner = "scientress";
+      #owner = "scientress";
+      owner = "MarcelCoding";
       repo = "c3ds";
-      rev = "3a667cb23dec1a35e5ba79a20bf791eccb38fc88";
-      hash = "sha256-56rmXWr+LGzTEGlYkSVMyNEGG+O5SkhVEQ6IzijN5Aw=";
+      rev = "8f80836d59c5de27ac1eeaa51b647d390303e3b1";
+      hash = "sha256-JGef4nvzr7foyQgnpyu0AMBgD9ilmODr53t0pGzBpIo=";
     };
 
     patches = [
-      ./0001-pyproject-init.patch
-      ./0002-c3ds-fix-frontend.patch
-      ./0003-use-sass-not-dart-sass.patch
-      ./0004-settings-base-dir.patch
+      #./0001-pyproject-init.patch
+      #./0002-c3ds-fix-frontend.patch
+      #./0003-use-sass-not-dart-sass.patch
+      #./0004-settings-base-dir.patch
       ];
   }}/src/";
 
