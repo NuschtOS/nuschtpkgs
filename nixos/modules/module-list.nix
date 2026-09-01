@@ -1701,6 +1701,7 @@
   ./services/web-apps/bookstack.nix
   ./services/web-apps/bulwark.nix
   ./services/web-apps/c2fmzq-server.nix
+  ./services/web-apps/c3ds.nix
   ./services/web-apps/c3nav.nix
   ./services/web-apps/calibre-web.nix
   ./services/web-apps/changedetection-io.nix
