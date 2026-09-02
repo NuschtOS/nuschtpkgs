@@ -2,33 +2,17 @@
   python3Packages,
   lib,
   fetchFromGitHub,
-  applyPatches,
   nixosTests,
 }:
 
 let
-  inherit (python3Packages) pkgs;
-
-  # Exposed via passthru so the NixOS module can build a pythonEnv that
-  # bundles c3ds + daphne together.
-  pythonPackages = python3Packages;
-
-  src = "${applyPatches {
-    src = fetchFromGitHub {
-      #owner = "scientress";
-      owner = "MarcelCoding";
-      repo = "c3ds";
-      rev = "8f80836d59c5de27ac1eeaa51b647d390303e3b1";
-      hash = "sha256-JGef4nvzr7foyQgnpyu0AMBgD9ilmODr53t0pGzBpIo=";
-    };
-
-    patches = [
-      #./0001-pyproject-init.patch
-      #./0002-c3ds-fix-frontend.patch
-      #./0003-use-sass-not-dart-sass.patch
-      #./0004-settings-base-dir.patch
-      ];
-  }}/src/";
+  src = fetchFromGitHub {
+    #owner = "scientress";
+    owner = "MarcelCoding";
+    repo = "c3ds";
+    rev = "17f426f9e4e4668fc735b81520b0c5a71d7abd09";
+    hash = "sha256-BgrdurowihaEwgGVL0pSc5LO0Qc4jU37lfHIElJs29Y=";
+  } + "/src/";
 
   # Runtime dependencies; shared between the python package and the
   # build-time python environment of the frontend derivation.
@@ -59,7 +43,7 @@ let
     ]
     ++ psycopg.optional-dependencies.c;
 
-  frontend = pkgs.callPackage ./frontend.nix {
+  frontend = python3Packages.callPackage ./frontend.nix {
     inherit src;
     pythonEnv = python3Packages.python.buildEnv.override { extraLibs = deps; };
   };
@@ -97,8 +81,8 @@ let
     '';
 
     passthru = {
+      pythonPackages = python3Packages;
       inherit
-        pythonPackages
         frontend
         deps
         ;

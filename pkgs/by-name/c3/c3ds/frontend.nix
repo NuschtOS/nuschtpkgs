@@ -9,18 +9,6 @@
 ,
 }:
 
-# Builds the c3ds frontend (Vue 3 + Vite) into `static.dist/`.
-#
-# The vite config uses the (npm) `django-vite-plugin`, which during the build
-# spawns `python manage.py django_vite_plugin …` to query the Django project's
-# settings (STATIC_ROOT, STATIC_URL, INSTALLED_APPS, static file lookup).
-# Hence `pythonEnv` must provide all of c3ds' python dependencies, and `src`
-# must be the *unpatched* layout where `manage.py` still sits next to
-# `package.json` (the pyproject patch moves it into the `c3ds` package).
-#
-# The output is a single directory: the vite bundles plus
-# `.vite/manifest.json`, which the (python) `django_vite_plugin` reads at
-# runtime. It is copied into the python package at build time.
 stdenv.mkDerivation (finalAttrs: {
   pname = "c3ds-frontend";
   version = "0-unstable-2025-12-29";
