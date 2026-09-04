@@ -11,8 +11,8 @@ let
     #owner = "scientress";
     owner = "MarcelCoding";
     repo = "c3ds";
-    rev = "29ff335cb1f5f7da374b848bbc7f39e1684fd034";
-    hash = "sha256-O3xnVD35WLhOOPqz8hdoa38Erfb6CT/f5dBMQRavdOU=";
+    rev = "3d6f4d01053be842f9b8ff718143d41bb090b34c";
+    hash = "sha256-WNAPQguruGjMOvxa9SBwgv+3tLTT2US8RDHSlez0Vr8=";
   } + "/src/";
 
   # Runtime dependencies; shared between the python package and the
@@ -64,6 +64,20 @@ let
     # Production settings demand a secret key when importing; the build-time
     # collectstatic only needs it to exist.
     env.DJANGO_SECRET_KEY = "c3ds-nix-build";
+
+    doCheck = true;
+
+    # Django's own test runner. buildPythonPackage has no checkPhase of its own and maps this
+    # one onto installCheckPhase, so it runs against the installed package with the source tree
+    # still the working directory. Dev settings keep the run self-contained; production wires up
+    # manifest static storage and offline compression the tests have no reason to depend on.
+    checkPhase = ''
+      runHook preCheck
+
+      ${python3Packages.python.interpreter} manage.py test c3ds --settings=c3ds.settings.dev
+
+      runHook postCheck
+    '';
 
     postInstall = ''
       # Collect the app static files into static.dist (which already contains
