@@ -11,7 +11,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "c3ds-frontend";
-  version = "0-unstable-2025-12-29";
+  version = "0-unstable-2026-09-04";
 
   inherit src;
 
@@ -34,9 +34,6 @@ stdenv.mkDerivation (finalAttrs: {
   env = {
     # The vite plugin imports the production settings, which demand a secret.
     DJANGO_SECRET_KEY = "c3ds-nix-build";
-    # @sentry/cli's postinstall would otherwise download a binary; the sentry
-    # plugin is a no-op without SENTRY_AUTH_TOKEN.
-    SENTRY_SKIP_DOWNLOAD = "1";
   };
 
   buildPhase = ''

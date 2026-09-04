@@ -30,8 +30,10 @@ let
 
   settingsOverrideDir = pkgs.runCommand "c3ds-django-settings-local" { } ''
     mkdir -p $out
-    cat > $out/django_settings_local.py <<EOF
+    cat > $out/django_settings_local.py <<'EOF'
     from c3ds.settings.production import *  # noqa: F401,F403
+    SOCIAL_AUTH_OIDC_GROUPS_CLAIM = ${builtins.toJSON cfg.settings.sso.groupsClaim}
+    SOCIAL_AUTH_OIDC_ALLOW_GROUPS = ${builtins.toJSON cfg.settings.sso.allowGroups}
     ${cfg.settings.extraConfig}
     EOF
   '';
@@ -48,9 +50,6 @@ let
   // lib.optionalAttrs (cfg.settings.dayZero != null) {
     C3DS_DAY_ZERO = cfg.settings.dayZero;
   }
-  // lib.optionalAttrs cfg.settings.remoteShell {
-    C3DS_REMOTE_SHELL = "true";
-  }
   // lib.optionalAttrs (cfg.settings.admins != [ ]) {
     C3DS_ADMINS = lib.concatStringsSep "," cfg.settings.admins;
   }
@@ -58,6 +57,9 @@ let
     C3DS_DELAYED_RELOAD_THRESHOLD = "${lib.toString cfg.settings.delayedReloadThreshold}";
   };
 
+  # Run this as root (e.g. via sudo): it reads the environment files and then
+  # drops to cfg.user with runuser. Service units that already run as cfg.user
+  # should invoke the `c3ds` entry point directly instead.
   c3dsManageWrapper = pkgs.writeShellApplication {
     name = "c3ds-manage";
     runtimeInputs = with pkgs; [
@@ -257,15 +259,6 @@ in
             '';
           };
 
-          remoteShell = lib.mkOption {
-            type = lib.types.bool;
-            default = false;
-            description = ''
-              Whether to enable the remote shell endpoints
-              (`C3DS_REMOTE_SHELL`).
-            '';
-          };
-
           admins = lib.mkOption {
             type = lib.types.listOf lib.types.str;
             default = [ ];
@@ -281,19 +274,52 @@ in
             default = null;
             example = 10;
             description = ''
-              Seconds to delay display reload broadcasts
-              (`C3DS_DELAYED_RELOAD_THRESHOLD`).
+              Number of displays from which on a reload is broadcast as
+              *delayed* (`C3DS_DELAYED_RELOAD_THRESHOLD`, application
+              default 10). A delayed reload makes each display wait a
+              random moment (up to 20 seconds) before reloading, so that a
+              large installation does not reconnect all at once.
+
+              This is a display count, not a duration.
             '';
+          };
+
+          sso = {
+            allowGroups = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [ "c3ds-admins" ];
+              description = ''
+                OIDC groups whose members may sign in
+                (`SOCIAL_AUTH_OIDC_ALLOW_GROUPS`).
+
+                ::: {.warning}
+                While this is empty the group check is skipped and *every*
+                account that can authenticate at the identity provider is
+                allowed in — and the login pipeline grants Django superuser
+                to every account it creates. Set this whenever the identity
+                provider is reachable by more than the operators.
+                :::
+              '';
+            };
+
+            groupsClaim = lib.mkOption {
+              type = lib.types.str;
+              default = "groups";
+              example = "roles";
+              description = ''
+                Claim in the userinfo response or id_token carrying the
+                group list (`SOCIAL_AUTH_OIDC_GROUPS_CLAIM`).
+              '';
+            };
           };
 
           extraConfig = lib.mkOption {
             type = lib.types.lines;
             default = "";
             example = ''
-              AUTHENTICATION_BACKENDS = [
-                "social_core.backends.oidc.OidcAuth",
-                "django.contrib.auth.backends.ModelBackend",
-              ]
+              SOCIAL_AUTH_OIDC_OIDC_ENDPOINT = "https://sso.example.com/realms/c3d2"
+              EMAIL_SUBJECT_PREFIX = "[c3ds prod] "
             '';
             description = ''
               Additional Python code to inject into the Django settings
@@ -439,16 +465,13 @@ in
             "postgresql.target"
           ];
           wantedBy = [ "multi-user.target" ];
-          preStart = ''
-            versionFile="${cfg.settings.filesystem.data}/.version"
-            version="$(cat "$versionFile" 2>/dev/null || echo 0)"
-
-            if [[ "$version" != "${cfg.package.version}" ]]; then
-              ${cfg.manage}/bin/c3ds-manage migrate
-
-              echo "${cfg.package.version}" > "$versionFile"
-            fi
-          '';
+          # migrate is idempotent and a no-op once everything is applied, so run
+          # it unconditionally instead of gating on a stored version: a version
+          # string that is not bumped would silently skip new migrations.
+          # Called directly rather than through c3ds-manage, which needs root
+          # (it sources the environment files and drops privileges via runuser);
+          # systemd has already applied `environment` and `EnvironmentFile` here.
+          preStart = "${lib.getExe' pythonEnv "c3ds"} migrate";
           serviceConfig = {
             ExecStart = ''
               ${lib.getExe' pythonEnv "daphne"} \

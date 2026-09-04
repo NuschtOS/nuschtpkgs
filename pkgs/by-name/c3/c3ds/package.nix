@@ -7,11 +7,12 @@
 
 let
   src = fetchFromGitHub {
+    # Temporarily pinned to a fork; homepage below stays on the upstream project.
     #owner = "scientress";
     owner = "MarcelCoding";
     repo = "c3ds";
-    rev = "17f426f9e4e4668fc735b81520b0c5a71d7abd09";
-    hash = "sha256-BgrdurowihaEwgGVL0pSc5LO0Qc4jU37lfHIElJs29Y=";
+    rev = "cf7f8152204795f4bf1db08bf7ae88e0b600548f";
+    hash = "sha256-pRmQQjAhhHsf03mbx5eNY5iO/rZM3mIbj7bX4olX0J4=";
   } + "/src/";
 
   # Runtime dependencies; shared between the python package and the
@@ -19,28 +20,22 @@ let
   deps =
     with python3Packages;
     [
-      celery
       channels-redis
       channels
       csscompressor
       daphne
       django-compressor
       django-environ
-      django-filter
       django-libsass
-      django-ninja
-      django-prometheus
       django-vite-plugin
       django
       hiredis
-      pillow
-      prometheus-client
       psycopg
-      qrcode
       redis
       requests
       social-auth-app-django
     ]
+    # pyproject asks for psycopg[binary]; `c` is the equivalent that builds from source.
     ++ psycopg.optional-dependencies.c;
 
   frontend = python3Packages.callPackage ./frontend.nix {
@@ -51,7 +46,7 @@ let
   in
    python3Packages.buildPythonApplication (finalAttrs: {
     pname = "c3ds";
-    version = "0-unstable-2025-12-29";
+    version = "0-unstable-2026-09-04";
 
       inherit src;
 
