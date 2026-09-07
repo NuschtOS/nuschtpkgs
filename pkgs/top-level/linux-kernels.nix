@@ -288,6 +288,8 @@ in
 
         ajantv2 = callPackage ../os-specific/linux/ajantv2 { };
 
+        aic8800 = callPackage ../os-specific/linux/aic8800 { };
+
         akvcam = callPackage ../os-specific/linux/akvcam { };
 
         amdgpu-i2c = callPackage ../os-specific/linux/amdgpu-i2c { };
