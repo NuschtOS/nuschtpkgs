@@ -1,0 +1,78 @@
+diff --git a/aic8800_fdrv/rwnx_compat.h b/aic8800_fdrv/rwnx_compat.h
+index a9ebbb6..96d1ca2 100644
+--- a/aic8800_fdrv/rwnx_compat.h
++++ b/aic8800_fdrv/rwnx_compat.h
+@@ -27,6 +27,15 @@
+ #error "Minimum kernel version supported is 3.10"
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
++#define from_timer timer_container_of
++#endif
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++#define del_timer timer_delete
++#define del_timer_sync timer_delete_sync
++#endif
++
+ /* Generic */
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
+ #define __bf_shf(x) (__builtin_ffsll(x) - 1)
+diff --git a/aic8800_fdrv/rwnx_main.c b/aic8800_fdrv/rwnx_main.c
+index 85b9d1f..cbb1ca4 100644
+--- a/aic8800_fdrv/rwnx_main.c
++++ b/aic8800_fdrv/rwnx_main.c
+@@ -4791,8 +4791,13 @@ void rwnx_cfg80211_mgmt_frame_register(struct wiphy *wiphy,
+  *	have changed. The actual parameter values are available in
+  *	struct wiphy. If returning an error, no value should be changed.
+  */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
++static int rwnx_cfg80211_set_wiphy_params(struct wiphy *wiphy, int radio_idx, u32 changed)
++{
++#else
+ static int rwnx_cfg80211_set_wiphy_params(struct wiphy *wiphy, u32 changed)
+ {
++#endif
+     return 0;
+ }
+ 
+@@ -4807,6 +4812,9 @@ static int rwnx_cfg80211_set_wiphy_params(struct wiphy *wiphy, u32 changed)
+ static int rwnx_cfg80211_set_tx_power(struct wiphy *wiphy,
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
+  struct wireless_dev *wdev,
++#endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
++ int radio_idx,
+ #endif
+                                       enum nl80211_tx_power_setting type, int mbm)
+ {
+diff --git a/aic8800_fdrv/rwnx_rx.c b/aic8800_fdrv/rwnx_rx.c
+index c719536..cb17846 100644
+--- a/aic8800_fdrv/rwnx_rx.c
++++ b/aic8800_fdrv/rwnx_rx.c
+@@ -2042,7 +2042,11 @@ u8 rwnx_rxdataind_aicwf(struct rwnx_hw *rwnx_hw, void *hostid, void *rx_priv)
+         hdr = (struct ieee80211_hdr *)(skb->data + msdu_offset);
+         rwnx_vif = rwnx_rx_get_vif(rwnx_hw, hw_rxhdr->flags_vif_idx);
+         if (rwnx_vif) {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
++            cfg80211_rx_spurious_frame(rwnx_vif->ndev, hdr->addr2, (int)-1, GFP_ATOMIC);
++#else
+             cfg80211_rx_spurious_frame(rwnx_vif->ndev, hdr->addr2, GFP_ATOMIC);
++#endif
+         }
+         goto end;
+     }
+@@ -2133,8 +2137,11 @@ u8 rwnx_rxdataind_aicwf(struct rwnx_hw *rwnx_hw, void *hostid, void *rx_priv)
+                 }
+ 
+                 if (hw_rxhdr->flags_is_4addr && !rwnx_vif->use_4addr) {
+-                    cfg80211_rx_unexpected_4addr_frame(rwnx_vif->ndev,
+-                                                       sta->mac_addr, GFP_ATOMIC);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
++                    cfg80211_rx_unexpected_4addr_frame(rwnx_vif->ndev, sta->mac_addr, (int)-1, GFP_ATOMIC);
++#else
++                    cfg80211_rx_unexpected_4addr_frame(rwnx_vif->ndev, sta->mac_addr, GFP_ATOMIC);
++#endif
+                 }
+             }
+ 
