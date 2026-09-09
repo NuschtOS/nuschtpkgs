@@ -92,6 +92,13 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # Only build the main rustfs binary
   cargoBuildFlags = "-p rustfs";
 
+  # Upstream's release profile uses thin LTO with a single codegen unit, which
+  # makes rustc get OOM-killed while compiling the test targets.
+  preCheck = ''
+    export CARGO_PROFILE_RELEASE_LTO=false
+    export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16
+  '';
+
   useNextest = true;
   cargoTestFlags = [
     "--package"
