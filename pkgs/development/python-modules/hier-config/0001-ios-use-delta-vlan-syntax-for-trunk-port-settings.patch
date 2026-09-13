@@ -1,0 +1,591 @@
+From 54e016f587dea6a894c813bbc7e2651143a4da70 Mon Sep 17 00:00:00 2001
+From: Marcel <me@m4rc3l.de>
+Date: Sun, 13 Sep 2026 14:39:37 +0200
+Subject: [PATCH] ios: use delta vlan syntax for trunk port settings
+
+---
+ docs/dev/architecture.md                  |   1 +
+ docs/user/custom-drivers.md               |   5 +-
+ docs/user/drivers.md                      |   3 +
+ docs/user/future-config.md                |  10 +-
+ hier_config/platforms/cisco_ios/driver.py | 111 +++++++++++
+ hier_config/platforms/driver_base.py      |   7 +
+ hier_config/platforms/functions.py        |  40 ++++
+ hier_config/root.py                       |   7 +-
+ tests/test_driver_cisco_ios.py            | 223 ++++++++++++++++++++++
+ tests/test_platforms_functions.py         |  31 +++
+ 10 files changed, 434 insertions(+), 4 deletions(-)
+ create mode 100644 tests/test_platforms_functions.py
+
+diff --git a/docs/dev/architecture.md b/docs/dev/architecture.md
+index 640b2f3..175d0e7 100644
+--- a/docs/dev/architecture.md
++++ b/docs/dev/architecture.md
+@@ -97,6 +97,7 @@ A frozen Pydantic model holding lists of typed rule objects:
+ | `indent_adjust` | `IndentAdjustRule` | Shift indentation at start/end markers |
+ | `parent_allows_duplicate_child` | `ParentAllowsDuplicateChildRule` | Permit duplicate child text |
+ | `post_load_callbacks` | `Callable[[HConfig], None]` | Run Python callbacks after parsing |
++| `post_remediation_callbacks` | `Callable[[HConfig], None]` | Run Python callbacks after `config_to_get_to()` computes the diff |
+ 
+ ### Built-in Platform Drivers
+ 
+diff --git a/docs/user/custom-drivers.md b/docs/user/custom-drivers.md
+index feea37d..ca72062 100644
+--- a/docs/user/custom-drivers.md
++++ b/docs/user/custom-drivers.md
+@@ -76,10 +76,11 @@ In Hier Config, the rules within a driver are organized into sections, each targ
+ 
+ ### 6. Post-Processing Callbacks
+ 
+-**Purpose**: Apply additional transformations after initial configuration processing.
++**Purpose**: Apply additional transformations at well-defined points in the pipeline.
+ 
+ - **Implementation**:
+-  - A list of functions or methods called after the driver rules are applied, enabling custom logic specific to the platform.
++  - `post_load_callbacks`: a list of functions called after a config finishes parsing (`get_hconfig`/`get_hconfig_fast_load`), enabling custom load-time normalization specific to the platform (e.g. Cisco IOS folding a wrapped `switchport trunk allowed vlan ... add ...` continuation line back into one canonical line before any diff runs).
++  - `post_remediation_callbacks`: a list of functions called after `config_to_get_to()` computes a remediation or rollback diff, enabling custom rewriting of the computed commands (e.g. Cisco IOS rewriting a full trunk-vlan negate-and-reapply pair into an `add`/`remove` delta).
+ 
+ ---
+ 
+diff --git a/docs/user/drivers.md b/docs/user/drivers.md
+index 64503fb..cc016ce 100644
+--- a/docs/user/drivers.md
++++ b/docs/user/drivers.md
+@@ -64,6 +64,9 @@ Cisco IOS is hier_config's primary reference platform and the most thoroughly te
+ - **[Sectional exiting](glossary.md#sectional-exiting)**: BGP `peer-policy` and `peer-session` blocks require `exit-peer-policy` and `exit-peer-session` closure tokens.
+ - **Per-line substitutions**: strips `Building configuration…` banners and timestamp headers.
+ - **VLAN id list splitting**: IOS can render unnamed VLANs collapsed onto a single comma/range line (e.g. `vlan 69,381`, `vlan 10-12`), depending on how the VLANs were created — named VLANs always get their own block, and the grouping shifts as VLANs are named or unnamed. When such a collapsed line is present, a post-load callback splits it into one `vlan <id>` block each so the VLANs diff block-to-block against an intended config that lists them separately — avoiding a destructive `no vlan 69,381`.
++- **Trunk VLAN delta remediation**: a long `switchport trunk allowed vlan` list wraps across multiple running-config lines on IOS — a base line plus one or more `add <ids>` continuation lines. A post-load callback merges these into one canonical line first, then a post-remediation callback rewrites a full negate-and-reapply pair into the incremental `switchport trunk allowed vlan add <ids>` / `remove <ids>` deltas IOS actually supports, matching how operators adjust trunk VLANs day-to-day.
++
++  **Known limitation**: `future()` and rollback don't fold these `add`/`remove` deltas back into the interface's canonical VLAN list — the predicted future config keeps them as separate literal lines alongside the original list rather than merging them (see [Future Config: Known Limitations](future-config.md#known-limitations)).
+ 
+ Platform enum: `Platform.CISCO_IOS`
+ 
+diff --git a/docs/user/future-config.md b/docs/user/future-config.md
+index 5cea4b8..4b1dcfc 100644
+--- a/docs/user/future-config.md
++++ b/docs/user/future-config.md
+@@ -55,7 +55,15 @@ The `future()` algorithm is a best-effort simulation.  The following cases are n
+    The extended ACL idempotency logic (sequence-number based matching) that drives
+    `config_to_get_to()` is not replicated in `future()`.
+ 
+-6. **And likely others.**
++6. **Cisco IOS trunk-vlan add/remove deltas.**
++   The Cisco IOS driver rewrites a trunk-vlan negate-and-reapply pair into
++   `switchport trunk allowed vlan add/remove <ids>` commands (see
++   [Drivers: Cisco IOS](drivers.md#cisco-ios-driver)). `future()` has no
++   concept of this delta syntax: it keeps such a command as a literal new
++   child alongside the interface's original full-list line rather than
++   folding it into an updated canonical list.
++
++7. **And likely others.**
+    Complex platform-specific interactions (e.g. VRF-aware BGP sections, route-policy
+    inline templates on IOS XR) may produce imperfect results.
+ 
+diff --git a/hier_config/platforms/cisco_ios/driver.py b/hier_config/platforms/cisco_ios/driver.py
+index 6dcab99..5ec6c9f 100644
+--- a/hier_config/platforms/cisco_ios/driver.py
++++ b/hier_config/platforms/cisco_ios/driver.py
+@@ -1,4 +1,5 @@
+ from logging import getLogger
++from re import fullmatch
+ 
+ from hier_config.models import (
+     IdempotentCommandsRule,
+@@ -10,11 +11,16 @@ from hier_config.models import (
+     SectionalExitingRule,
+ )
+ from hier_config.platforms.driver_base import HConfigDriverBase, HConfigDriverRules
++from hier_config.platforms.functions import collapse_range, expand_range
+ from hier_config.platforms.utils import split_vlan_id_lists
+ from hier_config.root import HConfig
+ 
+ logger = getLogger(__name__)
+ 
++_TRUNK_VLAN_LIST_RE = r"^switchport trunk allowed vlan [0-9,\-]+$"
++_TRUNK_VLAN_LIST_NEGATED_RE = r"^no switchport trunk allowed vlan [0-9,\-]+$"
++_TRUNK_VLAN_ADD_RE = r"^switchport trunk allowed vlan add ([0-9,\-]+)$"
++
+ 
+ def _rm_ipv6_acl_sequence_numbers(config: HConfig) -> None:
+     """If there are sequence numbers in the IPv6 ACL, remove them."""
+@@ -44,6 +50,107 @@ def _add_acl_sequence_numbers(config: HConfig) -> None:
+                     sequence_number += 10
+ 
+ 
++def _continuation_vlans(text: str) -> tuple[int, ...] | None:
++    """Parse a `switchport trunk allowed vlan add <ids>` continuation line.
++
++    Returns ``None`` if the line isn't a continuation, or its vlan spec fails
++    to parse (e.g. a reversed range), so the caller can leave it untouched.
++    """
++    match = fullmatch(_TRUNK_VLAN_ADD_RE, text)
++    if match is None:
++        return None
++    try:
++        return expand_range(match.group(1))
++    except ValueError:
++        return None
++
++
++def _merge_trunk_allowed_vlan_continuations(config: HConfig) -> None:
++    """Fold wrapped `switchport trunk allowed vlan` lines into one line.
++
++    IOS renders a long trunk-vlan list across multiple running-config lines: a
++    base line plus one or more ``add <ids>`` continuation lines. Merging them
++    at load time lets the diff engine compare a single value per side instead
++    of an arbitrary number of fragments.
++    """
++    seen_parent_ids: set[int] = set()
++    for child in tuple(config.all_children()):
++        parent = child.parent
++        if id(parent) in seen_parent_ids:
++            continue
++        seen_parent_ids.add(id(parent))
++
++        siblings = [
++            sibling
++            for sibling in parent.children
++            if fullmatch(_TRUNK_VLAN_LIST_RE, sibling.text)
++            or fullmatch(_TRUNK_VLAN_ADD_RE, sibling.text)
++        ]
++        if len(siblings) < 2:
++            continue
++
++        base, *continuations = siblings
++        try:
++            vlans = set(expand_range(base.text.rsplit(" ", 1)[-1]))
++        except ValueError:
++            continue
++
++        continuation_ids: list[tuple[int, ...]] = []
++        for continuation in continuations:
++            ids = _continuation_vlans(continuation.text)
++            if ids is None:
++                break
++            continuation_ids.append(ids)
++        else:
++            for ids in continuation_ids:
++                vlans |= set(ids)
++            for continuation in continuations:
++                continuation.delete()
++            base.text = f"switchport trunk allowed vlan {collapse_range(sorted(vlans))}"
++
++
++def _rewrite_trunk_allowed_vlan_delta(config: HConfig) -> None:
++    """Rewrite a full trunk-vlan negate-and-reapply pair into an add/remove delta.
++
++    IOS supports incremental ``add``/``remove`` keywords for
++    ``switchport trunk allowed vlan``, so a remediation that would otherwise
++    negate the whole list and reapply a near-identical one is rewritten into
++    the minimal delta an operator would actually type.
++    """
++    for negated in tuple(config.all_children()):
++        if not fullmatch(_TRUNK_VLAN_LIST_NEGATED_RE, negated.text):
++            continue
++
++        parent = negated.parent
++        positive = parent.get_child(re_search=_TRUNK_VLAN_LIST_RE)
++        if positive is None:
++            continue
++
++        try:
++            old_vlans = set(
++                expand_range(negated.text_without_negation.rsplit(" ", 1)[-1])
++            )
++            new_vlans = set(expand_range(positive.text.rsplit(" ", 1)[-1]))
++        except ValueError:
++            continue
++
++        added = sorted(new_vlans - old_vlans)
++        removed = sorted(old_vlans - new_vlans)
++        if not added and not removed:
++            continue
++
++        negated.delete()
++        positive.delete()
++        if removed:
++            parent.add_child(
++                f"switchport trunk allowed vlan remove {collapse_range(removed)}"
++            )
++        if added:
++            parent.add_child(
++                f"switchport trunk allowed vlan add {collapse_range(added)}"
++            )
++
++
+ class HConfigDriverCiscoIOS(HConfigDriverBase):
+     """Driver for Cisco IOS and IOS-XE.
+ 
+@@ -199,5 +306,9 @@ class HConfigDriverCiscoIOS(HConfigDriverBase):
+                 _remove_ipv4_acl_remarks,
+                 _add_acl_sequence_numbers,
+                 split_vlan_id_lists,
++                _merge_trunk_allowed_vlan_continuations,
++            ],
++            post_remediation_callbacks=[
++                _rewrite_trunk_allowed_vlan_delta,
+             ],
+         )
+diff --git a/hier_config/platforms/driver_base.py b/hier_config/platforms/driver_base.py
+index 6bab826..9066eaf 100644
+--- a/hier_config/platforms/driver_base.py
++++ b/hier_config/platforms/driver_base.py
+@@ -68,6 +68,10 @@ def _post_load_callbacks_default() -> list[Callable[[HConfig], None]]:
+     return []
+ 
+ 
++def _post_remediation_callbacks_default() -> list[Callable[[HConfig], None]]:
++    return []
++
++
+ def _sectional_exiting_rules_default() -> list[SectionalExitingRule]:
+     return []
+ 
+@@ -127,6 +131,9 @@ class HConfigDriverRules(BaseModel):  # pylint: disable=too-many-instance-attrib
+     post_load_callbacks: list[Callable[[HConfig], None]] = Field(
+         default_factory=_post_load_callbacks_default
+     )
++    post_remediation_callbacks: list[Callable[[HConfig], None]] = Field(
++        default_factory=_post_remediation_callbacks_default
++    )
+     sectional_exiting: list[SectionalExitingRule] = Field(
+         default_factory=_sectional_exiting_rules_default
+     )
+diff --git a/hier_config/platforms/functions.py b/hier_config/platforms/functions.py
+index 9637be0..3254627 100644
+--- a/hier_config/platforms/functions.py
++++ b/hier_config/platforms/functions.py
+@@ -1,3 +1,43 @@
++from collections.abc import Iterable
++
++_MIN_RANGE_LENGTH = 3
++
++
++def collapse_range(numbers: Iterable[int]) -> str:
++    """Collapse ints into a compact range spec, the inverse of `expand_range`.
++
++    De-duplicates and sorts the input, so ``[5, 3, 4, 3, 1]`` collapses to
++    ``"1,3-5"``. Only runs of three or more consecutive ids collapse into a
++    ``start-end`` range -- a run of exactly two is listed as ``start,end`` --
++    matching how Cisco IOS itself renders VLAN lists.
++    """
++    ordered = sorted(set(numbers))
++    if not ordered:
++        return ""
++
++    runs: list[tuple[int, int]] = []
++    start = end = ordered[0]
++    for number in ordered[1:]:
++        if number == end + 1:
++            end = number
++            continue
++        runs.append((start, end))
++        start = end = number
++    runs.append((start, end))
++
++    segments: list[str] = []
++    for run_start, run_end in runs:
++        run_length = run_end - run_start + 1
++        if run_length >= _MIN_RANGE_LENGTH:
++            segments.append(f"{run_start}-{run_end}")
++        elif run_start == run_end:
++            segments.append(str(run_start))
++        else:
++            segments.append(f"{run_start},{run_end}")
++
++    return ",".join(segments)
++
++
+ def expand_range(number_range_str: str) -> tuple[int, ...]:
+     """Expand ranges like ``2-5,8,22-45`` into a de-duplicated, ordered tuple.
+ 
+diff --git a/hier_config/root.py b/hier_config/root.py
+index 1d82528..976119a 100644
+--- a/hier_config/root.py
++++ b/hier_config/root.py
+@@ -154,7 +154,12 @@ class HConfig(HConfigBase):  # ruff:ignore[too-many-public-methods]
+         if delta is None:
+             delta = HConfig(self.driver)
+ 
+-        return self._config_to_get_to(target, delta)
++        self._config_to_get_to(target, delta)
++
++        for callback in self.driver.rules.post_remediation_callbacks:
++            callback(delta)
++
++        return delta
+ 
+     def add_ancestor_copy_of(
+         self,
+diff --git a/tests/test_driver_cisco_ios.py b/tests/test_driver_cisco_ios.py
+index 44b316b..09f7bdf 100644
+--- a/tests/test_driver_cisco_ios.py
++++ b/tests/test_driver_cisco_ios.py
+@@ -260,3 +260,226 @@ def test_vlan_id_list_no_change_is_idempotent() -> None:
+     generated_config = get_hconfig(Platform.CISCO_IOS, "vlan 69,381\n")
+     remediation = running_config.config_to_get_to(generated_config).dump_simple()
+     assert remediation == ()
++
++
++def test_trunk_allowed_vlan_add_continuation_is_merged_on_load() -> None:
++    """IOS wraps a long trunk-vlan list across an `add` continuation line in
++    its own running-config; hier_config merges it back into one canonical
++    line so the diff engine compares a single value.
++    """
++    config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 1,4,5,9,40-42,44-50,53,56-58,61-63,65,69,74,78\n"
++        " switchport trunk allowed vlan add 84,85,87-90,101-103,161\n",
++    )
++    interface = config.get_child(equals="interface Port-channel9")
++    assert interface is not None
++    assert [c.text for c in interface.children] == [
++        (
++            "switchport trunk allowed vlan "
++            "1,4,5,9,40-42,44-50,53,56-58,61-63,65,69,74,78,84,85,87-90,101-103,161"
++        ),
++    ]
++
++
++def test_trunk_allowed_vlan_multiple_add_continuations_are_merged_on_load() -> None:
++    """More than one `add` continuation line folds in file order."""
++    config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 1-3\n"
++        " switchport trunk allowed vlan add 5\n"
++        " switchport trunk allowed vlan add 7-9\n",
++    )
++    interface = config.get_child(equals="interface Port-channel9")
++    assert interface is not None
++    assert [c.text for c in interface.children] == [
++        "switchport trunk allowed vlan 1-3,5,7-9"
++    ]
++
++
++def test_trunk_allowed_vlan_non_add_continuation_is_left_untouched() -> None:
++    """A second plain (non-`add`) trunk-vlan line is not a valid continuation
++    shape, so the whole run is left alone.
++    """
++    config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 1-3\n"
++        " switchport trunk allowed vlan 5\n",
++    )
++    interface = config.get_child(equals="interface Port-channel9")
++    assert interface is not None
++    assert [c.text for c in interface.children] == [
++        "switchport trunk allowed vlan 1-3",
++        "switchport trunk allowed vlan 5",
++    ]
++
++
++def test_trunk_allowed_vlan_malformed_base_is_left_untouched() -> None:
++    """A malformed base line bails out before any continuation is touched."""
++    config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 9-5\n"
++        " switchport trunk allowed vlan add 5\n",
++    )
++    interface = config.get_child(equals="interface Port-channel9")
++    assert interface is not None
++    assert [c.text for c in interface.children] == [
++        "switchport trunk allowed vlan 9-5",
++        "switchport trunk allowed vlan add 5",
++    ]
++
++
++def test_trunk_allowed_vlan_malformed_continuation_is_left_untouched() -> None:
++    """A continuation line with an unparseable spec is left alone entirely."""
++    config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 1-3\n"
++        " switchport trunk allowed vlan add 9-5\n",
++    )
++    interface = config.get_child(equals="interface Port-channel9")
++    assert interface is not None
++    assert [c.text for c in interface.children] == [
++        "switchport trunk allowed vlan 1-3",
++        "switchport trunk allowed vlan add 9-5",
++    ]
++
++
++def test_trunk_allowed_vlan_remediation_uses_add_delta() -> None:
++    """Adding one VLAN to a trunk emits an `add` delta, not a full negate+reapply."""
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n"
++        " switchport trunk allowed vlan 1-6,8,9,13,20-23,40-92,101-103,161,163,170\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n"
++        " switchport trunk allowed vlan 1-6,8,9,12,13,20-23,40-92,101-103,161,163,170\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  switchport trunk allowed vlan add 12",
++    )
++
++
++def test_trunk_allowed_vlan_remediation_uses_remove_delta() -> None:
++    """Removing one VLAN from a trunk emits a `remove` delta."""
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,20,30\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,30\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  switchport trunk allowed vlan remove 20",
++    )
++
++
++def test_trunk_allowed_vlan_remediation_uses_add_and_remove_deltas() -> None:
++    """A trunk change that both adds and removes VLANs emits both deltas."""
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,20,30\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,25,30\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  switchport trunk allowed vlan remove 20",
++        "  switchport trunk allowed vlan add 25",
++    )
++
++
++def test_trunk_allowed_vlan_wrapped_running_config_diffs_to_a_delta() -> None:
++    """A wrapped (multi-line) running config merges on load, then diffs against
++    a plain intended config as a minimal delta -- proving the load-time merge
++    and the remediation-time split compose correctly.
++    """
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan 1,4,5,9,40-42,44-50,53,56-58,61-63,65,69,74,78\n"
++        " switchport trunk allowed vlan add 84,85,87-90,101-103,161\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface Port-channel9\n"
++        " switchport trunk allowed vlan "
++        "1,4,5,9,40-42,44-50,53,56-58,61-63,65,69,74,78,84,85,87-90,101-103,161,172\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface Port-channel9",
++        "  switchport trunk allowed vlan add 172",
++    )
++
++
++def test_trunk_allowed_vlan_full_removal_stays_a_plain_negation() -> None:
++    """Removing the trunk-vlan restriction entirely (no replacement) is not
++    rewritten into a delta -- there is nothing to add/remove relative to.
++    """
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,20,30\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS, "interface GigabitEthernet1/0/1\n"
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  no switchport trunk allowed vlan 10,20,30",
++    )
++
++
++def test_trunk_allowed_vlan_equivalent_specs_produce_no_delta() -> None:
++    """A textual-only change that resolves to the same VLAN set (e.g.
++    `1,2,3` vs `1-3`) yields no add/remove delta.
++    """
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 1,2,3\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 1-3\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  no switchport trunk allowed vlan 1,2,3",
++        "  switchport trunk allowed vlan 1-3",
++    )
++
++
++def test_trunk_allowed_vlan_malformed_spec_is_not_rewritten() -> None:
++    """A malformed vlan spec that still matches the line shape is left as a
++    plain negate+reapply pair rather than crashing.
++    """
++    running_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 9-5\n",
++    )
++    generated_config = get_hconfig(
++        Platform.CISCO_IOS,
++        "interface GigabitEthernet1/0/1\n switchport trunk allowed vlan 10,20\n",
++    )
++    remediation = running_config.config_to_get_to(generated_config).dump_simple()
++    assert remediation == (
++        "interface GigabitEthernet1/0/1",
++        "  no switchport trunk allowed vlan 9-5",
++        "  switchport trunk allowed vlan 10,20",
++    )
+diff --git a/tests/test_platforms_functions.py b/tests/test_platforms_functions.py
+new file mode 100644
+index 0000000..7773bfb
+--- /dev/null
++++ b/tests/test_platforms_functions.py
+@@ -0,0 +1,31 @@
++from hier_config.platforms.functions import collapse_range, expand_range
++
++
++def test_collapse_range_contiguous() -> None:
++    assert collapse_range([1, 2, 3, 4, 5, 6]) == "1-6"
++
++
++def test_collapse_range_singles() -> None:
++    assert collapse_range([8, 9]) == "8,9"
++    assert collapse_range([12]) == "12"
++
++
++def test_collapse_range_non_contiguous() -> None:
++    assert collapse_range([1, 3, 5]) == "1,3,5"
++
++
++def test_collapse_range_mixed() -> None:
++    assert collapse_range([1, 2, 3, 8, 9, 13, 20, 21, 22, 23]) == "1-3,8,9,13,20-23"
++
++
++def test_collapse_range_unsorted_and_duplicated_input() -> None:
++    assert collapse_range([5, 3, 4, 3, 1]) == "1,3-5"
++
++
++def test_collapse_range_empty() -> None:
++    assert not collapse_range([])
++
++
++def test_collapse_range_round_trips_with_expand_range() -> None:
++    spec = "1-6,8,9,13,20-23,40-92,101-103,161,163,170"
++    assert collapse_range(expand_range(spec)) == spec
+-- 
+2.54.0
+
