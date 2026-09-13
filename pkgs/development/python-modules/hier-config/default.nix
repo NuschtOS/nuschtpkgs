@@ -10,15 +10,19 @@
 
 buildPythonPackage (finalAttrs: {
   pname = "hier-config";
-  version = "3.6.0";
+  version = "3.7.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "netdevops";
     repo = "hier_config";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-OMX66ffIPuWkjVEL8fe6E7WCVF+J9+suh5TsQW5e7IY=";
+    hash = "sha256-PIQv3l6wookA+VtJHz6XFiMkk/lO76igZ+pWDuRHzEg=";
   };
+
+  patches = [
+    ./0001-ios-use-delta-vlan-syntax-for-trunk-port-settings.patch
+  ];
 
   build-system = [ poetry-core ];
 
