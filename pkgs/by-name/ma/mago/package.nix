@@ -1,7 +1,7 @@
 {
   stdenv,
   lib,
-  rustPackages_1_97,
+  rustPackages_1_98,
   fetchFromGitHub,
   installShellFiles,
   pkg-config,
@@ -9,7 +9,7 @@
   versionCheckHook,
 }:
 
-rustPackages_1_97.rustPlatform.buildRustPackage (finalAttrs: {
+rustPackages_1_98.rustPlatform.buildRustPackage (finalAttrs: {
   pname = "mago";
   version = "1.47.6";
 
