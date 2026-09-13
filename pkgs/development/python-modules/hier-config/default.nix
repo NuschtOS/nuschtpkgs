@@ -20,6 +20,10 @@ buildPythonPackage (finalAttrs: {
     hash = "sha256-44Cn+veFM0IRdDiSpw2wYxFwT4Q0+Obp4Lm+iSFgbRU=";
   };
 
+  patches = [
+    ./0001-ios-use-delta-vlan-syntax-for-trunk-port-settings.patch
+  ];
+
   build-system = [ poetry-core ];
 
   dependencies = [ pydantic ];
