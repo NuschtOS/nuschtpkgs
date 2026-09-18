@@ -11,8 +11,8 @@ let
     #owner = "scientress";
     owner = "MarcelCoding";
     repo = "c3ds";
-    rev = "6a043895350ca632201797a31341486445ae9e71";
-    hash = "sha256-RqWij6OplV/PJ5cSsYAllE8fZg8MTvh0aZtbSD2TW9s=";
+    rev = "755ed84218660f02e8caa73dc3e37ce9ceaf345e";
+    hash = "sha256-OFKiGnwp3fWx9GJhovgaoxqdkI9M02MK+MFscToa6N8=";
   } + "/src/";
 
   # Runtime dependencies; shared between the python package and the
