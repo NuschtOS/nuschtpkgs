@@ -23,14 +23,19 @@ let
     src = fetchFromGitHub {
       owner = "ikatson";
       repo = "rqbit";
-      rev = "176484e2e3bfcfea1ec6c66c9f20ab755377f63b";
-      hash = "sha256-Va6c0Un9hqGJhykMIecvC6Q/OCrBzRNh3EJwrA1R0FA=";
+      rev = "57e95d16c830863a1fde32d8fa98153b53a3d0b4";
+      hash = "sha256-IBYTvahhgaiaFGLuuZbdsFnilT0eBGhy7Ow9a1fkRYI=";
     };
 
     patches = [
       (fetchpatch {
         url = "https://github.com/ikatson/rqbit/commit/c8e38a0b5e8a5f2b75d589b7a8597b6f3e1b00d9.patch";
         hash = "sha256-6UghcH62DRWdtsO/a2JBV3890eJHiPWND9e0izb7CBY=";
+      })
+      # https://github.com/ikatson/rqbit/pull/704
+      (fetchpatch {
+        url = "https://github.com/ikatson/rqbit/commit/a6607a4ed44cf3e9a9d1ba62f2029ebc5c278588.patch";
+        hash = "sha256-2dV55b71SFWlZWrya2HjOVzab9zMT9YOXDfKywWKRzE=";
       })
     ];
   };
