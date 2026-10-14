@@ -84,6 +84,8 @@ in
         ExecStart = "${lib.getExe cfg.package} server start ${cfg.downloadDir}";
         User = cfg.user;
         Group = cfg.group;
+        # it sometimes crashes
+        Restart = "on-failure";
 
         StateDirectory = "rqbit";
         StateDirectoryMode = "0750";
