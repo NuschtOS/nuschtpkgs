@@ -6,7 +6,7 @@
   pnpm,
   pnpmConfigHook,
   nodejs,
-  rustPackages_1_98,
+  rustPackages_1_99,
   protobuf,
   cacert,
   nix-update,
@@ -15,7 +15,7 @@
 }:
 
 let
-  inherit (rustPackages_1_98) rustPlatform;
+  inherit (rustPackages_1_99) rustPlatform;
   console = stdenv.mkDerivation (finalAttrs: {
     pname = "rustfs-console";
     version = "0.1.34";
