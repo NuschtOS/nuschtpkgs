@@ -1,24 +1,29 @@
 {
   lib,
   rustPlatform,
-  fetchCrate,
+  fetchFromGitHub,
   makeBinaryWrapper,
   rustfmt,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "zbus_xmlgen";
-  version = "5.4.1";
+  version = "6.0.0";
 
-  src = fetchCrate {
-    inherit (finalAttrs) pname version;
-    hash = "sha256-jfK+p5+DoxeGzzti984OZx527xiETtKuWQfLBnXrIAk=";
+  src = fetchFromGitHub {
+    owner = "z-galaxy";
+    repo = "zbus";
+    tag = "zbus_xmlgen-${finalAttrs.version}";
+    hash = "sha256-R0rq+uSelXJxNGKe8wk6juJd/QcKq7zkVSm8sz2Anho=";
   };
 
-  cargoHash = "sha256-fnUlEPf/0rd4unjoLRg+HTHwDkC0CkIL+UnRy8/56w0=";
+  cargoHash = "sha256-MRsy/zeNwCeNVeIdb8rE+zO2nUQwzeWngUFPtmrBLZk=";
 
   nativeBuildInputs = [ makeBinaryWrapper ];
-  nativeCheckInputs = [ rustfmt ];
+
+  cargoBuildFlags = [ "-p zbus_xmlgen" ];
+
+  doCheck = false;
 
   postInstall = ''
     wrapProgram $out/bin/zbus-xmlgen \
