@@ -266,6 +266,10 @@ in
       daemonize = false;
     };
 
+    services.phpfpm.phpOptions = mkAfter ''
+      session.upload_progress.enabled = 0
+    '';
+
     systemd.slices.system-phpfpm = {
       description = "PHP FastCGI Process Manager Slice";
     };
