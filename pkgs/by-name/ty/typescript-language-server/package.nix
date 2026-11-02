@@ -17,13 +17,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "typescript-language-server";
-  version = "6.0.2";
+  version = "6.0.3";
 
   src = fetchFromGitHub {
     owner = "typescript-language-server";
     repo = "typescript-language-server";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-3wZYxzN0yGmofpufw4IjPkQGQe70U58ZZ9zrqamqe7s=";
+    hash = "sha256-FOsOphQWtSKnUY87zEtAA5mdMmwdGFpc5CeviNRIKwc=";
   };
 
   patches = [
@@ -36,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_12;
     fetcherVersion = 4;
-    hash = "sha256-xR/EF60lVBsITKgH7wCM2wHM46PFQevD51KfCENSUH4=";
+    hash = "sha256-0FWTN4KeEkF5q2AFYqlWQ6UC210ia229VxZ7JQRKa0c=";
   };
 
   nativeBuildInputs = [
