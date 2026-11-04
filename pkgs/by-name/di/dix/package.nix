@@ -1,11 +1,15 @@
 {
   lib,
-  rustPlatform,
+  rustPackages_1_99,
   fetchFromGitHub,
   sqlite,
   nix-update-script,
   versionCheckHook,
 }:
+
+let
+  inherit (rustPackages_1_99) rustPlatform;
+in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "dix";
   version = "3.0.0";
