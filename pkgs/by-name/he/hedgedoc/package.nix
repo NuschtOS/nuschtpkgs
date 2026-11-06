@@ -6,6 +6,7 @@
   makeBinaryWrapper,
   nodejs,
   python3,
+  sqlite,
   nixosTests,
   yarn-berry_4,
 }:
@@ -54,7 +55,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     nodejs # for shebangs
+    sqlite
   ];
+
+  # link the sqlite3 node module against system sqlite instead of the bundled copy
+  env.npm_config_sqlite = lib.getDev sqlite;
 
   buildPhase = ''
     runHook preBuild
@@ -76,6 +81,9 @@ stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
+    # intermediate build artifacts of the sqlite3 node module, they reference sqlite.dev
+    rm -r node_modules/sqlite3/build/{*Makefile,*.gypi,*.mk,Release/obj.target,Release/.deps}
+
     mkdir -p $out/share/hedgedoc
     cp -r {app.js,bin,lib,locales,node_modules,package.json,public} $out/share/hedgedoc
 
@@ -91,6 +99,8 @@ stdenv.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+
+  disallowedReferences = [ sqlite.dev ];
 
   passthru = {
     tests = { inherit (nixosTests) hedgedoc; };
