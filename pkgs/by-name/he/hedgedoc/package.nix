@@ -58,7 +58,6 @@ stdenv.mkDerivation (finalAttrs: {
 
     # Delete scripts that are not useful for NixOS
     rm bin/{heroku,setup}
-    patchShebangs bin/*
 
     runHook postBuild
   '';
@@ -77,15 +76,12 @@ stdenv.mkDerivation (finalAttrs: {
     mkdir -p $out/share/hedgedoc
     cp -r {app.js,bin,lib,locales,node_modules,package.json,public} $out/share/hedgedoc
 
-    for bin in $out/share/hedgedoc/bin/*; do
-      makeWrapper $bin $out/bin/$(basename $bin) \
-        --set NODE_ENV production \
-        --set NODE_PATH "$out/share/hedgedoc/lib/node_modules"
-    done
     makeWrapper ${nodejs}/bin/node $out/bin/hedgedoc \
       --add-flags $out/share/hedgedoc/app.js \
-      --set NODE_ENV production \
-      --set NODE_PATH "$out/share/hedgedoc/lib/node_modules"
+      --set NODE_ENV production
+    for bin in $out/share/hedgedoc/bin/*; do
+      makeWrapper $bin $out/bin/$(basename $bin) --set NODE_ENV production
+    done
 
     runHook postInstall
   '';
