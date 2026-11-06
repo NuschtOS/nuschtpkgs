@@ -72,6 +72,8 @@ stdenv.mkDerivation (finalAttrs: {
 
     # intermediate build artifacts of the sqlite3 node module, they reference sqlite.dev
     rm -r node_modules/sqlite3/build/{*Makefile,*.gypi,*.mk,Release/obj.target,Release/.deps}
+    # node-gyp is only needed to build the sqlite3 bindings, its python scripts would pull python into the closure
+    rm -r node_modules/{,sqlite3/node_modules/}{node-gyp,.bin/node-gyp}
 
     mkdir -p $out/share/hedgedoc
     cp -r {app.js,bin,lib,locales,node_modules,package.json,public} $out/share/hedgedoc
