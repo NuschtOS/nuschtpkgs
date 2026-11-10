@@ -3,12 +3,14 @@
   stdenv,
   fetchFromGitHub,
   fetchPnpmDeps,
-  pnpm,
+  pnpm_11,
   pnpmConfigHook,
   nodejs,
   rustPackages_1_99,
+  pkg-config,
   protobuf,
-  cacert,
+  zstd,
+  aws-lc,
   nix-update,
   nixosTests,
   writeShellApplication,
@@ -16,9 +18,11 @@
 
 let
   inherit (rustPackages_1_99) rustPlatform;
+  pnpm = pnpm_11;
+
   console = stdenv.mkDerivation (finalAttrs: {
     pname = "rustfs-console";
-    version = "0.1.37";
+    version = "0.1.41";
     __structuredAttrs = true;
     __darwinAllowLocalNetworking = true;
 
@@ -26,13 +30,14 @@ let
       owner = "rustfs";
       repo = "console";
       tag = "v${finalAttrs.version}";
-      hash = "sha256-yLzKLlZ/OZYGfrCcz1RdcXHQSu9h4FTEtzCOsvquK2U=";
+      hash = "sha256-x42ATbrIhK2dV2vI80Uiao7PFnIBcDE5l3OgkJm/dq4=";
     };
 
     pnpmDeps = fetchPnpmDeps {
       inherit (finalAttrs) pname version src;
+      inherit pnpm;
       fetcherVersion = 4;
-      hash = "sha256-tWeemxHBvWEWKECIAYzlw0MaKpkjXTTodj9Rgf8U28s=";
+      hash = "sha256-TWEoCDz0XNCEIk7f27KHHjqFRsKthLbvcumhVVU2dIw=";
     };
 
     nativeBuildInputs = [
@@ -54,14 +59,14 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "rustfs";
-  version = "1.0.3";
+  version = "1.0.5";
   __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "rustfs";
     repo = "rustfs";
     tag = finalAttrs.version;
-    hash = "sha256-Vzu3pA6P/BJcPxK8IcKgT8vUNYdEsKKYwsV87M/IVyQ=";
+    hash = "sha256-Id6rkdyFtiMj+0v7HJaT7ZXgzOhIOy0qnymXg6ZOyjo=";
   };
 
   postPatch = ''
@@ -69,11 +74,16 @@ rustPlatform.buildRustPackage (finalAttrs: {
     cp -rL ${finalAttrs.console} ./rustfs/static
   '';
 
-  cargoHash = "sha256-OLaCvnyMTXYC1bO0FJo0inINjjWzIpZsi60wzGbcSZA=";
+  cargoHash = "sha256-+K4mCUlor2vEYUupKI39gVNN5RI1zyOY+EeiESeYNqE=";
 
   nativeBuildInputs = [
+    pkg-config
     protobuf
-    cacert
+  ];
+
+  buildInputs = [
+    zstd
+    aws-lc
   ];
 
   inherit console;
@@ -106,7 +116,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
     homepage = "https://github.com/rustfs/rustfs";
     changelog = "https://github.com/rustfs/rustfs/releases/tag/${finalAttrs.version}";
     license = lib.licenses.asl20;
-    maintainers = with lib.maintainers; [ marcel ];
+    maintainers = with lib.maintainers; [
+      marcel
+      adamcstephens
+    ];
     mainProgram = "rustfs";
   };
 })
