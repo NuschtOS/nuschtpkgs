@@ -115,12 +115,14 @@ in
       environment.etc."ssl/trust-source".source = "${cacertPackage.p11kit}/etc/ssl/trust-source";
 
       environment.variables = {
+        SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
         NIX_SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
       };
 
       systemd.units."service.d/10-SSL_CERT_FILE.conf".text = /* ini */ ''
         [Service]
         Environment=NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
+        Environment=SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
       '';
     })
     { security.pki.caBundle = caBundle; }
