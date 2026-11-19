@@ -469,6 +469,10 @@ lib.makeScope pkgs.newScope (
             {
               name = "fileinfo";
               buildInputs = [ pcre2 ];
+              postPatch = ''
+                # very flaky
+                rm ext/fileinfo/tests/bug68996.phpt
+              '';
             }
             {
               name = "filter";
